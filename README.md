@@ -76,61 +76,114 @@ any single crowded strike can do to the pool.
 **Oracle-settled, dispute-windowed.** Expiry settles against an oracle print, with a
 dispute window before payouts finalize.
 
-## Interface
+## Running it
 
-This repository contains the Hockeystick web client and brand system.
+Hockeystick routes options orders through [Alpaca](https://alpaca.markets), which
+provides an official options trading API. Paper accounts are free, get options Level 3
+by default — the approval multi-leg strategies require — and carry no real money.
 
-The client is a single self-contained page — no build step, no bundler, no runtime
-dependencies. Markup, styles, and the pricer's roughly 400 lines of vanilla JavaScript
-live in one file, and the only external request is a font stylesheet. The payoff chart
-renders to `<canvas>`. Light and dark palettes both follow the viewer's OS preference
-and can be overridden with an explicit `data-theme` toggle.
+**1. Get API keys.** Create an account at [alpaca.markets](https://alpaca.markets) and
+generate a key pair from the dashboard. Paper and live are separate accounts with
+separate keys.
 
-```
-index.html              Web client — markup, styles, pricer
-vercel.json             Hosting config: clean URLs, cache and security headers
-brand/
-  README.md             Brand guide: logo usage, social specs, safe zones
-  logo-lockup.svg       Primary horizontal logo (light and dark variants)
-  logo-mark.svg         Standalone mark (light and dark variants)
-  logo-badge.svg        Badge treatment
-  x-avatar-*.png        Social avatars at 400px and 800px
-  x-banner-*.png        Social headers at 1500×500 and 3000×1000
-  src/
-    avatar.html         Artboard the avatar renders from
-    banner.html         Artboard the banner renders from
-    shared.css          Design tokens shared by the artboards
-    render.sh           Headless Chrome screenshot renderer
-    build_assets.py     Asset build driver
-    wordmark_path.txt   Wordmark as raw SVG path data
-    fonts/              Fonts embedded during rendering
-```
-
-### Running locally
-
-No install step. Serve the directory over HTTP:
+**2. Configure the server.**
 
 ```bash
-python3 -m http.server 8080
+cd server
+cp .env.example .env      # then add ALPACA_KEY_ID and ALPACA_SECRET_KEY
+npm install
 ```
 
-Then open <http://127.0.0.1:8080>.
+`.env` is gitignored. Keys are read only by the server process — the browser never
+receives them, and every upstream call is signed server-side.
 
-To match production routing — `cleanUrls`, `trailingSlash`, and the headers declared in
-`vercel.json` — use the Vercel CLI instead:
+**3. Verify the connection.**
 
 ```bash
-vercel dev
+npm run check
 ```
 
-### Deployment
+Confirms the keys work, reports which environment you are pointed at, and checks the
+account's options level and market-data access before you place anything.
 
-Deploys from the repository root on Vercel with no build command. `vercel.json` sets:
+**4. Start.**
 
-- `cleanUrls` and `trailingSlash: false` for canonical paths
-- `Cache-Control: public, max-age=0, must-revalidate` on `index.html`, so a deploy is
-  live immediately instead of being held behind a stale cache
-- `X-Content-Type-Options`, `Referrer-Policy`, and `X-Frame-Options` on every route
+```bash
+npm start
+```
+
+| | |
+|---|---|
+| Trading client | <http://127.0.0.1:8787/app> |
+| Marketing site | <http://127.0.0.1:8787/> |
+| API health | <http://127.0.0.1:8787/api/health> |
+
+### Paper and live
+
+`ALPACA_ENV` defaults to `paper`. Setting it to `live` routes real orders against real
+money, and the server then refuses any order that does not carry an explicit
+`confirmLive` flag, so a misconfigured environment cannot quietly spend capital. The
+client banner turns red in live mode, and the order button requires a second click that
+names the amount before anything is sent.
+
+## How orders are routed
+
+```
+Browser (app.html)  ──►  Node server (server/)  ──►  Alpaca REST API
+   no credentials          holds the keys,             options chain,
+   ever                    validates every order       greeks, order routing
+```
+
+**Order safety is enforced server-side**, not in the UI:
+
+- **Limit orders only.** Market orders are rejected outright. Option books are wide and
+  thin, and a market order on a two-cent quote can fill far from the mid.
+- **Covered calls are verified covered.** Before routing, the server checks live
+  positions for the 100 shares per contract. Short of that it refuses, so the strategy
+  can never degrade into a naked short with unbounded loss.
+- **Multi-leg fills are atomic.** A straddle routes as `order_class: mleg`, filling both
+  legs together or neither. One filled leg would be a directional bet, not the
+  volatility position you asked for.
+- **Quantities and symbols are validated** before anything reaches the broker —
+  fractional contracts, malformed OCC symbols, and wrong leg counts all fail closed.
+
+Run the test suite covering the order builder and payoff math:
+
+```bash
+cd server && node --test test/
+```
+
+### API
+
+| Method | Route | Purpose |
+|---|---|---|
+| `GET` | `/api/health` | Environment, live flag, credential presence |
+| `GET` | `/api/account` | Equity, buying power, options level |
+| `GET` | `/api/positions` | Open positions with unrealized P/L |
+| `GET` | `/api/underlying/:symbol` | Spot bid, ask, last, mid |
+| `GET` | `/api/expirations/:symbol` | Available expiries |
+| `GET` | `/api/chain/:symbol?expiry=` | Chain by strike with quotes and greeks |
+| `POST` | `/api/payoff` | Payoff curve, max loss, max gain, break-even |
+| `GET` | `/api/orders` | Order blotter |
+| `POST` | `/api/orders` | Route a strategy as a validated order |
+| `DELETE` | `/api/orders/:id` | Cancel a working order |
+
+## Layout
+
+```
+index.html              Marketing site
+app.html                Trading client — chain, pricer, ticket, blotter
+vercel.json             Static hosting config for the marketing site
+server/
+  src/config.js         Environment and endpoint resolution
+  src/alpaca.js         Alpaca REST client — the only holder of credentials
+  src/strategies.js     The four shapes, order construction, payoff math
+  src/routes.js         API surface and order validation
+  src/server.js         Express app
+  src/preflight.js      Connectivity and entitlement check
+  test/                 Order builder and payoff tests
+brand/                  Logos, social assets, and the artboards they render from
+```
 
 ## Brand
 

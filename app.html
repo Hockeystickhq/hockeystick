@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hockeystick — Trade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDEEE4; --paper-2:#E4E6D8; --surface:#F7F8F1;
+  --ink:#14150F; --ink-2:#3B3D31; --dim:#6E7062;
+  --line:#14150F; --line-soft:#C7C9B8;
+  --volt:#D8EE2E; --on-volt:#14150F;
+  --up:#0093B8; --down:#E0246F;
+  --up-wash:rgba(0,147,184,.14); --down-wash:rgba(224,36,111,.13);
+  --hard:3px 3px 0 var(--ink); --r:2px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#13140E; --paper-2:#1B1D14; --surface:#1A1C13;
+    --ink:#EDEEE4; --ink-2:#C7C9B9; --dim:#8B8D7C;
+    --line:#3A3D2E; --line-soft:#2A2C20;
+    --volt:#DFF23B; --up:#3AD6EE; --down:#FF4D93;
+    --up-wash:rgba(58,214,238,.15); --down-wash:rgba(255,77,147,.14);
+    --hard:3px 3px 0 var(--line);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#13140E; --paper-2:#1B1D14; --surface:#1A1C13;
+  --ink:#EDEEE4; --ink-2:#C7C9B9; --dim:#8B8D7C;
+  --line:#3A3D2E; --line-soft:#2A2C20;
+  --volt:#DFF23B; --up:#3AD6EE; --down:#FF4D93;
+  --up-wash:rgba(58,214,238,.15); --down-wash:rgba(255,77,147,.14);
+  --hard:3px 3px 0 var(--line);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font:400 15px/1.5 "Instrument Sans",system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:"Bricolage Grotesque","Instrument Sans",sans-serif;font-weight:800;margin:0;letter-spacing:-.02em}
+.mono{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+button,input,select{font:inherit;color:inherit}
+
+/* ------------------------------- environment ------------------------------ */
+#envbar{padding:.5rem 1rem;text-align:center;font-weight:600;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid var(--line)}
+#envbar.paper{background:var(--volt);color:var(--on-volt)}
+#envbar.live{background:var(--down);color:#fff}
+#envbar.err{background:var(--down);color:#fff}
+
+/* --------------------------------- shell --------------------------------- */
+header{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;padding:1rem 1.25rem;border-bottom:2px solid var(--line)}
+header .brand{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.3rem;letter-spacing:-.03em}
+header a{color:var(--dim);text-decoration:none;font-size:.85rem}
+header a:hover{color:var(--ink)}
+.spacer{flex:1}
+#acct{display:flex;gap:1.4rem;flex-wrap:wrap;font-size:.82rem}
+#acct div span{display:block;color:var(--dim);font-size:.7rem;text-transform:uppercase;letter-spacing:.07em}
+
+main{max-width:1400px;margin:0 auto;padding:1.25rem;display:grid;gap:1.25rem;grid-template-columns:minmax(0,1fr) 380px}
+@media (max-width:1080px){main{grid-template-columns:1fr}}
+
+.panel{background:var(--surface);border:2px solid var(--line);border-radius:var(--r);box-shadow:var(--hard)}
+.panel > h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;padding:.7rem .9rem;border-bottom:2px solid var(--line);font-weight:700}
+.panel .body{padding:.9rem}
+
+/* --------------------------------- controls ------------------------------- */
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:flex-end}
+label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);margin-bottom:.25rem;font-weight:600}
+input,select{background:var(--paper);border:2px solid var(--line);border-radius:var(--r);padding:.45rem .55rem}
+input:focus,select:focus{outline:2px solid var(--volt);outline-offset:1px}
+input[type=number]{width:7.5rem}
+#symbol{width:7rem;text-transform:uppercase;font-weight:600}
+
+button{background:var(--paper);border:2px solid var(--line);border-radius:var(--r);padding:.45rem .8rem;cursor:pointer;font-weight:600}
+button:hover:not(:disabled){background:var(--paper-2)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.primary{background:var(--volt);color:var(--on-volt);box-shadow:var(--hard)}
+button.primary:hover:not(:disabled){transform:translate(1px,1px);box-shadow:2px 2px 0 var(--line)}
+button.danger{background:var(--down);color:#fff}
+
+.strat{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.9rem}
+.strat button{flex:1;min-width:8rem;text-align:left;padding:.55rem .6rem;font-size:.85rem}
+.strat button small{display:block;color:var(--dim);font-weight:400;font-size:.7rem;margin-top:.15rem;line-height:1.3}
+.strat button[aria-pressed=true]{background:var(--volt);color:var(--on-volt);box-shadow:var(--hard)}
+.strat button[aria-pressed=true] small{color:rgba(20,21,15,.7)}
+
+/* ---------------------------------- chain --------------------------------- */
+.chainwrap{max-height:440px;overflow:auto;border:2px solid var(--line);border-radius:var(--r)}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+thead th{position:sticky;top:0;background:var(--paper-2);border-bottom:2px solid var(--line);padding:.45rem .5rem;text-align:right;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;z-index:1}
+thead th.strike{text-align:center}
+tbody td{padding:.35rem .5rem;text-align:right;border-bottom:1px solid var(--line-soft)}
+tbody td.strike{text-align:center;font-weight:600;background:var(--paper-2)}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--up-wash)}
+tbody tr[aria-selected=true]{background:var(--volt);color:var(--on-volt)}
+tbody tr[aria-selected=true] td.strike{background:var(--volt)}
+td.call{background:var(--up-wash)}
+td.put{background:var(--down-wash)}
+tr[aria-selected=true] td.call,tr[aria-selected=true] td.put{background:transparent}
+.atm td.strike::after{content:" ·";color:var(--down)}
+
+/* --------------------------------- ticket --------------------------------- */
+#payoff{width:100%;height:190px;display:block;border:2px solid var(--line);border-radius:var(--r);background:var(--paper)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin:.8rem 0}
+.stats div{border:2px solid var(--line);border-radius:var(--r);padding:.45rem .55rem}
+.stats span{display:block;font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);font-weight:600}
+.stats strong{font-family:"DM Mono",monospace;font-size:1rem;font-weight:500}
+.loss strong{color:var(--down)} .gain strong{color:var(--up)}
+
+#legs{font-size:.78rem;margin:.6rem 0;border-top:1px solid var(--line-soft);padding-top:.6rem}
+#legs div{display:flex;justify-content:space-between;gap:.5rem;padding:.15rem 0}
+#legs .b{color:var(--up);font-weight:600} #legs .s{color:var(--down);font-weight:600}
+
+.msg{padding:.6rem .7rem;border:2px solid var(--line);border-radius:var(--r);font-size:.82rem;margin-top:.7rem}
+.msg.err{background:var(--down-wash);border-color:var(--down)}
+.msg.ok{background:var(--up-wash);border-color:var(--up)}
+.hint{color:var(--dim);font-size:.78rem;line-height:1.45}
+
+/* -------------------------------- blotter --------------------------------- */
+#blotter table{font-size:.76rem}
+#blotter td,#blotter th{text-align:left}
+.badge{display:inline-block;padding:.1rem .35rem;border:1px solid currentColor;border-radius:var(--r);font-size:.65rem;text-transform:uppercase;letter-spacing:.05em}
+.st-filled{color:var(--up)} .st-canceled,.st-expired,.st-rejected{color:var(--down)} .st-new,.st-accepted,.st-pending_new{color:var(--dim)}
+</style>
+</head>
+<body>
+
+<div id="envbar">connecting…</div>
+
+<header>
+  <span class="brand">Hockeystick</span>
+  <a href="/">← Site</a>
+  <span class="spacer"></span>
+  <div id="acct"><div class="hint">no account</div></div>
+</header>
+
+<main>
+  <div>
+    <!-- ------------------------------ chain ------------------------------ -->
+    <section class="panel">
+      <h2>Chain</h2>
+      <div class="body">
+        <div class="row" style="margin-bottom:.8rem">
+          <div>
+            <label for="symbol">Underlying</label>
+            <input id="symbol" value="AAPL" autocomplete="off" spellcheck="false">
+          </div>
+          <div>
+            <label for="expiry">Expiry</label>
+            <select id="expiry"><option>—</option></select>
+          </div>
+          <button id="load">Load chain</button>
+          <div class="spacer"></div>
+          <div id="spot" class="mono hint"></div>
+        </div>
+        <div class="chainwrap">
+          <table>
+            <thead><tr>
+              <th>Δ</th><th>IV</th><th>Bid</th><th>Ask</th>
+              <th class="strike">Strike</th>
+              <th>Bid</th><th>Ask</th><th>IV</th><th>Δ</th>
+            </tr>
+            <tr><th colspan="4" style="text-align:center;color:var(--up)">CALLS</th>
+                <th class="strike"></th>
+                <th colspan="4" style="text-align:center;color:var(--down)">PUTS</th></tr></thead>
+            <tbody id="chain"><tr><td colspan="9" style="text-align:center;padding:2rem" class="hint">Load a chain to begin.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ----------------------------- blotter ----------------------------- -->
+    <section class="panel" id="blotter" style="margin-top:1.25rem">
+      <h2>Orders &amp; positions</h2>
+      <div class="body">
+        <div class="row" style="margin-bottom:.6rem">
+          <button id="refresh">Refresh</button>
+          <span class="spacer"></span>
+          <span class="hint" id="blotternote"></span>
+        </div>
+        <div id="orders"><p class="hint">No orders yet.</p></div>
+        <div id="positions"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ------------------------------ ticket ------------------------------ -->
+  <section class="panel" style="align-self:start;position:sticky;top:1rem">
+    <h2>Ticket</h2>
+    <div class="body">
+      <div class="strat" id="strats"></div>
+      <canvas id="payoff" width="700" height="380" role="img"
+              aria-label="Profit and loss at expiry against the underlying price"></canvas>
+      <div class="stats">
+        <div class="loss"><span>Max loss</span><strong id="maxloss">—</strong></div>
+        <div class="gain"><span>Max gain</span><strong id="maxgain">—</strong></div>
+        <div><span>Break-even</span><strong id="be" class="mono">—</strong></div>
+        <div><span>Net debit</span><strong id="cost" class="mono">—</strong></div>
+      </div>
+      <div id="legs"><p class="hint">Pick a strategy, then click a strike in the chain.</p></div>
+      <div class="row">
+        <div><label for="qty">Contracts</label><input id="qty" type="number" min="1" step="1" value="1"></div>
+        <div><label for="limit">Limit / contract</label><input id="limit" type="number" min="0.01" step="0.01"></div>
+      </div>
+      <p class="hint" style="margin:.5rem 0 .8rem">
+        Limit orders only. Option books are wide and thin — a market order can fill far from the mid.
+      </p>
+      <button class="primary" id="place" style="width:100%" disabled>Review order</button>
+      <div id="msg"></div>
+    </div>
+  </section>
+</main>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const money = (n) => n == null || !isFinite(n) ? '—'
+  : (n < 0 ? '-' : '') + '$' + Math.abs(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const num = (n, d = 2) => n == null || !isFinite(n) ? '—' : Number(n).toFixed(d);
+
+const state = {
+  env: null, live: false,
+  symbol: 'AAPL', expiry: null, spot: null,
+  strategies: [], strategy: 'long_call',
+  chain: [], selected: null,
+  quote: null, pendingConfirm: false,
+};
+
+async function api(path, opts = {}) {
+  const res = await fetch('/api' + path, {
+    headers: { 'content-type': 'application/json' },
+    ...opts,
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch { data = { error: text }; }
+  if (!res.ok) throw new Error(data?.error || `${res.status} ${res.statusText}`);
+  return data;
+}
+
+function say(text, kind = '') {
+  $('msg').innerHTML = text ? `<div class="msg ${kind}">${text}</div>` : '';
+}
+
+/* --------------------------------- boot ---------------------------------- */
+
+async function boot() {
+  try {
+    const h = await api('/health');
+    state.env = h.env; state.live = h.live;
+    const bar = $('envbar');
+    bar.className = h.live ? 'live' : 'paper';
+    bar.textContent = h.live
+      ? '⚠ LIVE — orders place real trades with real money'
+      : 'Paper trading — simulated orders, no real money at risk';
+    if (!h.credentialsPresent) {
+      bar.className = 'err';
+      bar.textContent = 'No API keys configured — add them to server/.env, then restart';
+      return;
+    }
+  } catch {
+    const bar = $('envbar');
+    bar.className = 'err';
+    bar.textContent = 'Backend unreachable — start it with: cd server && npm start';
+    return;
+  }
+
+  state.strategies = await api('/strategies');
+  renderStrategies();
+  await loadAccount();
+  await loadExpiries();
+  await refreshBlotter();
+}
+
+async function loadAccount() {
+  try {
+    const a = await api('/account');
+    $('acct').innerHTML = `
+      <div><span>Account</span>${a.accountNumber}</div>
+      <div><span>Equity</span><b class="mono">${money(a.equity)}</b></div>
+      <div><span>Buying power</span><b class="mono">${money(a.buyingPower)}</b></div>
+      <div><span>Options level</span>${a.optionsTradingLevel ?? '—'}</div>`;
+  } catch (e) { $('acct').innerHTML = `<div class="hint">${e.message}</div>`; }
+}
+
+/* ------------------------------- strategies ------------------------------- */
+
+function renderStrategies() {
+  $('strats').innerHTML = state.strategies.map((s) => `
+    <button data-strat="${s.id}" aria-pressed="${s.id === state.strategy}">
+      ${s.name}<small>${s.blurb}</small>
+    </button>`).join('');
+
+  $('strats').querySelectorAll('button').forEach((b) => {
+    b.addEventListener('click', () => {
+      state.strategy = b.dataset.strat;
+      renderStrategies();
+      if (state.selected != null) select(state.selected);
+      else drawPayoff(null);
+    });
+  });
+}
+
+/* ---------------------------------- chain --------------------------------- */
+
+async function loadExpiries() {
+  const sym = $('symbol').value.trim().toUpperCase();
+  if (!sym) return;
+  state.symbol = sym;
+  $('expiry').innerHTML = '<option>loading…</option>';
+  try {
+    const [{ expirations }, spot] = await Promise.all([
+      api(`/expirations/${sym}`),
+      api(`/underlying/${sym}`).catch(() => null),
+    ]);
+    state.spot = spot?.mid ?? null;
+    $('spot').textContent = spot ? `${sym} ${num(spot.mid)}  (bid ${num(spot.bid)} / ask ${num(spot.ask)})` : '';
+    if (!expirations.length) { $('expiry').innerHTML = '<option>none</option>'; return; }
+    $('expiry').innerHTML = expirations.slice(0, 24).map((d) => `<option>${d}</option>`).join('');
+    state.expiry = expirations[0];
+  } catch (e) {
+    $('expiry').innerHTML = '<option>—</option>';
+    say(e.message, 'err');
+  }
+}
+
+async function loadChain() {
+  const sym = $('symbol').value.trim().toUpperCase();
+  const exp = $('expiry').value;
+  if (!sym || !exp || exp === '—') return;
+  state.symbol = sym; state.expiry = exp; state.selected = null;
+
+  $('chain').innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem" class="hint">Loading…</td></tr>';
+  try {
+    const { strikes } = await api(`/chain/${sym}?expiry=${exp}`);
+    state.chain = strikes;
+    renderChain();
+  } catch (e) {
+    $('chain').innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem" class="hint">${e.message}</td></tr>`;
+  }
+}
+
+function renderChain() {
+  if (!state.chain.length) {
+    $('chain').innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem" class="hint">No contracts.</td></tr>';
+    return;
+  }
+  // Centre the view on the money.
+  const atm = state.spot
+    ? state.chain.reduce((best, r) => Math.abs(r.strike - state.spot) < Math.abs(best.strike - state.spot) ? r : best)
+    : null;
+
+  $('chain').innerHTML = state.chain.map((r) => {
+    const c = r.call || {}, p = r.put || {};
+    return `<tr data-strike="${r.strike}" class="${atm && r.strike === atm.strike ? 'atm' : ''}" aria-selected="false">
+      <td class="call">${num(c.delta)}</td>
+      <td class="call">${c.impliedVolatility != null ? (c.impliedVolatility * 100).toFixed(1) + '%' : '—'}</td>
+      <td class="call mono">${num(c.bid)}</td>
+      <td class="call mono">${num(c.ask)}</td>
+      <td class="strike mono">${r.strike}</td>
+      <td class="put mono">${num(p.bid)}</td>
+      <td class="put mono">${num(p.ask)}</td>
+      <td class="put">${p.impliedVolatility != null ? (p.impliedVolatility * 100).toFixed(1) + '%' : '—'}</td>
+      <td class="put">${num(p.delta)}</td>
+    </tr>`;
+  }).join('');
+
+  $('chain').querySelectorAll('tr').forEach((tr) => {
+    tr.addEventListener('click', () => select(Number(tr.dataset.strike)));
+  });
+  if (atm) document.querySelector(`tr[data-strike="${atm.strike}"]`)?.scrollIntoView({ block: 'center' });
+}
+
+/* -------------------------------- selection ------------------------------- */
+
+function legsFor(strategy, row) {
+  const c = row.call, p = row.put;
+  switch (strategy) {
+    case 'long_call':    return c ? [{ side: 'Buy',  sym: c.symbol, px: c.ask ?? c.mid, leg: c }] : null;
+    case 'long_put':     return p ? [{ side: 'Buy',  sym: p.symbol, px: p.ask ?? p.mid, leg: p }] : null;
+    case 'covered_call': return c ? [{ side: 'Sell', sym: c.symbol, px: c.bid ?? c.mid, leg: c }] : null;
+    case 'straddle':     return c && p
+      ? [{ side: 'Buy', sym: c.symbol, px: c.ask ?? c.mid, leg: c },
+         { side: 'Buy', sym: p.symbol, px: p.ask ?? p.mid, leg: p }]
+      : null;
+    default: return null;
+  }
+}
+
+async function select(strike) {
+  const row = state.chain.find((r) => r.strike === strike);
+  if (!row) return;
+  state.selected = strike;
+  state.pendingConfirm = false;
+
+  document.querySelectorAll('#chain tr').forEach((tr) =>
+    tr.setAttribute('aria-selected', String(Number(tr.dataset.strike) === strike)));
+
+  const legs = legsFor(state.strategy, row);
+  if (!legs) {
+    $('legs').innerHTML = '<p class="hint">That strike has no quote for this strategy.</p>';
+    $('place').disabled = true;
+    return;
+  }
+
+  const premium = legs.reduce((sum, l) => sum + (l.px ?? 0), 0);
+  state.quote = { strike, legs, premium };
+
+  $('legs').innerHTML = legs.map((l) => `
+    <div><span class="${l.side === 'Buy' ? 'b' : 's'}">${l.side} to open</span>
+    <span class="mono">${l.sym}</span><span class="mono">${num(l.px)}</span></div>`).join('')
+    + `<div style="border-top:1px solid var(--line-soft);margin-top:.3rem;padding-top:.3rem">
+        <strong>Premium</strong><span class="mono"><strong>${num(premium)}</strong></span></div>`;
+
+  if (premium > 0) $('limit').value = premium.toFixed(2);
+  $('place').disabled = !(premium > 0);
+  $('place').textContent = 'Review order';
+  await updateTicket();
+}
+
+async function updateTicket() {
+  if (!state.quote) return;
+  const premium = Number($('limit').value) || state.quote.premium;
+  const qty = Math.max(1, Number($('qty').value) || 1);
+  try {
+    const r = await api('/payoff', {
+      method: 'POST',
+      body: { strategy: state.strategy, strike: state.quote.strike, premium },
+    });
+    $('maxloss').textContent = money(-Math.abs(r.maxLoss) * qty);
+    $('maxgain').textContent = r.maxGain === null || !isFinite(r.maxGain) ? 'Uncapped' : money(r.maxGain * qty);
+    $('be').textContent = Array.isArray(r.breakEven) ? r.breakEven.map((b) => num(b)).join(' / ') : num(r.breakEven);
+    $('cost').textContent = money(premium * 100 * qty);
+    drawPayoff(r.curve);
+  } catch (e) { say(e.message, 'err'); }
+}
+
+/* --------------------------------- payoff --------------------------------- */
+
+function drawPayoff(curve) {
+  const cv = $('payoff'), ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth, h = cv.clientHeight;
+  cv.width = w * dpr; cv.height = h * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const css = getComputedStyle(document.documentElement);
+  const ink = css.getPropertyValue('--ink').trim();
+  const up = css.getPropertyValue('--up').trim();
+  const down = css.getPropertyValue('--down').trim();
+  const dim = css.getPropertyValue('--dim').trim();
+
+  ctx.clearRect(0, 0, w, h);
+  if (!curve || !curve.length) {
+    ctx.fillStyle = dim; ctx.font = '13px "Instrument Sans",sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Select a strike to see the payoff', w / 2, h / 2);
+    return;
+  }
+
+  const pad = { l: 8, r: 8, t: 12, b: 18 };
+  const xs = curve.map((p) => p.spot), ys = curve.map((p) => p.pnl);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  let y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const padY = (y1 - y0) * 0.12 || 1; y0 -= padY; y1 += padY;
+  const X = (v) => pad.l + ((v - x0) / (x1 - x0)) * (w - pad.l - pad.r);
+  const Y = (v) => h - pad.b - ((v - y0) / (y1 - y0)) * (h - pad.t - pad.b);
+
+  // zero line
+  ctx.strokeStyle = dim; ctx.setLineDash([3, 3]); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.l, Y(0)); ctx.lineTo(w - pad.r, Y(0)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // profit / loss fills
+  for (const [sign, color] of [[1, up], [-1, down]]) {
+    ctx.beginPath(); ctx.moveTo(X(curve[0].spot), Y(0));
+    curve.forEach((p) => ctx.lineTo(X(p.spot), Y(sign > 0 ? Math.max(p.pnl, 0) : Math.min(p.pnl, 0))));
+    ctx.lineTo(X(curve[curve.length - 1].spot), Y(0)); ctx.closePath();
+    ctx.fillStyle = color; ctx.globalAlpha = .16; ctx.fill(); ctx.globalAlpha = 1;
+  }
+
+  // the hockeystick itself
+  ctx.strokeStyle = ink; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+  ctx.beginPath(); curve.forEach((p, i) => i ? ctx.lineTo(X(p.spot), Y(p.pnl)) : ctx.moveTo(X(p.spot), Y(p.pnl)));
+  ctx.stroke();
+
+  // spot marker
+  if (state.spot && state.spot > x0 && state.spot < x1) {
+    ctx.strokeStyle = down; ctx.lineWidth = 1.5; ctx.setLineDash([2, 3]);
+    ctx.beginPath(); ctx.moveTo(X(state.spot), pad.t); ctx.lineTo(X(state.spot), h - pad.b); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  ctx.fillStyle = dim; ctx.font = '10px "DM Mono",monospace';
+  ctx.textAlign = 'left';  ctx.fillText(x0.toFixed(0), pad.l, h - 5);
+  ctx.textAlign = 'right'; ctx.fillText(x1.toFixed(0), w - pad.r, h - 5);
+}
+
+/* --------------------------------- orders --------------------------------- */
+
+async function place() {
+  if (!state.quote) return;
+  const btn = $('place');
+
+  // Two-step confirm: the first click shows exactly what will be routed.
+  if (!state.pendingConfirm) {
+    const qty = Math.max(1, Number($('qty').value) || 1);
+    const px = Number($('limit').value);
+    const name = state.strategies.find((s) => s.id === state.strategy)?.name;
+    state.pendingConfirm = true;
+    btn.textContent = state.live ? 'Confirm — REAL MONEY' : 'Confirm order';
+    btn.classList.toggle('danger', state.live);
+    say(`Routing <b>${qty} × ${name}</b> on ${state.symbol} ${state.expiry} @ ${state.quote.strike}
+         · limit <b>${num(px)}</b>/contract · total <b>${money(px * 100 * qty)}</b>.
+         Click again to send, or change anything to cancel.`, 'ok');
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const r = await api('/orders', {
+      method: 'POST',
+      body: {
+        strategy: state.strategy,
+        symbols: state.quote.legs.map((l) => l.sym),
+        qty: Math.max(1, Number($('qty').value) || 1),
+        limitPrice: Number($('limit').value),
+        confirmLive: state.live,
+      },
+    });
+    say(`Order <span class="mono">${r.id.slice(0, 8)}</span> accepted — status <b>${r.status}</b>.`, 'ok');
+    await refreshBlotter();
+    await loadAccount();
+  } catch (e) {
+    say(e.message, 'err');
+  } finally {
+    state.pendingConfirm = false;
+    btn.disabled = false; btn.textContent = 'Review order'; btn.classList.remove('danger');
+  }
+}
+
+async function refreshBlotter() {
+  try {
+    const [orders, positions] = await Promise.all([
+      api('/orders?limit=25'),
+      api('/positions').catch(() => []),
+    ]);
+
+    $('orders').innerHTML = orders.length ? `<table>
+      <thead><tr><th>Time</th><th>Symbol</th><th>Side</th><th>Qty</th><th>Limit</th><th>Filled</th><th>Status</th><th></th></tr></thead>
+      <tbody>${orders.map((o) => {
+        const sym = o.orderClass === 'mleg' ? o.legs.map((l) => l.symbol).join(' + ') : o.symbol;
+        const open = ['new', 'accepted', 'pending_new', 'partially_filled'].includes(o.status);
+        return `<tr>
+          <td class="mono">${new Date(o.createdAt).toLocaleTimeString()}</td>
+          <td class="mono">${sym}</td><td>${o.side ?? '—'}</td>
+          <td class="mono">${o.qty}</td><td class="mono">${num(o.limitPrice)}</td>
+          <td class="mono">${o.filledAvgPrice != null ? num(o.filledAvgPrice) : '—'}</td>
+          <td><span class="badge st-${o.status}">${o.status}</span></td>
+          <td>${open ? `<button data-cancel="${o.id}">Cancel</button>` : ''}</td>
+        </tr>`;
+      }).join('')}</tbody></table>` : '<p class="hint">No orders yet.</p>';
+
+    $('orders').querySelectorAll('[data-cancel]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        b.disabled = true;
+        try { await api(`/orders/${b.dataset.cancel}`, { method: 'DELETE' }); await refreshBlotter(); }
+        catch (e) { say(e.message, 'err'); b.disabled = false; }
+      });
+    });
+
+    $('positions').innerHTML = positions.length ? `<h3 style="font-size:.8rem;margin:1rem 0 .4rem">Positions</h3><table>
+      <thead><tr><th>Symbol</th><th>Qty</th><th>Avg</th><th>Value</th><th>P/L</th></tr></thead>
+      <tbody>${positions.map((p) => `<tr>
+        <td class="mono">${p.symbol}</td><td class="mono">${p.qty}</td>
+        <td class="mono">${num(p.avgEntryPrice)}</td><td class="mono">${money(p.marketValue)}</td>
+        <td class="mono" style="color:${p.unrealizedPl >= 0 ? 'var(--up)' : 'var(--down)'}">${money(p.unrealizedPl)}</td>
+      </tr>`).join('')}</tbody></table>` : '';
+
+    $('blotternote').textContent = `${orders.length} orders · ${positions.length} positions`;
+  } catch (e) { $('blotternote').textContent = e.message; }
+}
+
+/* --------------------------------- wiring --------------------------------- */
+
+$('symbol').addEventListener('change', loadExpiries);
+$('expiry').addEventListener('change', loadChain);
+$('load').addEventListener('click', loadChain);
+$('refresh').addEventListener('click', refreshBlotter);
+$('place').addEventListener('click', place);
+for (const id of ['qty', 'limit']) {
+  $(id).addEventListener('input', () => { state.pendingConfirm = false; $('place').textContent = 'Review order'; $('place').classList.remove('danger'); updateTicket(); });
+}
+window.addEventListener('resize', () => state.quote ? updateTicket() : drawPayoff(null));
+
+drawPayoff(null);
+boot();
+</script>
+</body>
+</html>
