@@ -1,0 +1,80 @@
+<link rel="stylesheet" href="shared.css">
+<style>
+body{width:1500px;height:500px;overflow:hidden}
+.b{position:relative;width:1500px;height:500px;background:var(--paper);overflow:hidden}
+.grain{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply;opacity:.5}
+/* ---- left block ---- */
+.badge{position:absolute;left:88px;top:76px;width:66px;height:66px;background:var(--ink);overflow:hidden}
+.badge svg{width:100%;height:100%;display:block}
+.eyebrow{position:absolute;left:172px;top:99px;font-size:13px;letter-spacing:.19em;text-transform:uppercase;color:var(--dim)}
+.wm{position:absolute;left:84px;top:164px;font-size:104px;line-height:1;color:var(--ink)}
+.tag{position:absolute;left:88px;top:288px;font-size:27px;line-height:1.25;color:var(--ink-2);letter-spacing:-.005em}
+.hl{position:relative;color:var(--ink);z-index:1;padding:0 5px}
+.hl:before{content:"";position:absolute;left:0;right:0;top:6px;bottom:2px;background:var(--volt);z-index:-1}
+/* ---- payoff card ---- */
+.card{position:absolute;left:922px;top:60px;width:492px;height:300px;background:#F7F8F1;
+  border:1.5px solid var(--ink);box-shadow:7px 7px 0 var(--ink)}
+.chead{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;
+  border-bottom:1.5px solid var(--ink);font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-2)}
+.chead b{color:var(--ink);font-weight:500}
+.chart{padding:6px 8px 8px}
+/* ---- bottom band ---- */
+.band{position:absolute;left:0;right:0;top:416px;height:84px;background:var(--ink);border-top:3px solid var(--volt)}
+.ticker{position:absolute;left:414px;top:449px;font-size:12px;letter-spacing:.165em;text-transform:uppercase;color:var(--pin-fg);white-space:nowrap}
+.ticker i{color:var(--volt);font-style:normal;padding:0 14px}
+</style>
+<div class="b">
+  <div class="badge" id="badge"></div>
+  <div class="eyebrow mono">On-chain options &middot; USDC settled &middot; no liquidations</div>
+  <div class="wm">Hockeystick</div>
+  <div class="tag sans">Bet the <span class="hl">shape</span> of the move. Not the size.</div>
+
+  <div class="card">
+    <div class="chead mono"><span>Payoff at expiry</span><b>Long call</b></div>
+    <div class="chart" id="chart"></div>
+  </div>
+
+  <div class="band"></div>
+  <div class="ticker mono">Calls &amp; puts <i>&#10022;</i> Permissionless listing <i>&#10022;</i> Loss capped at premium <i>&#10022;</i> Settles in USDC <i>&#10022;</i> Oracle-settled</div>
+
+  <svg class="grain" id="gr" width="1500" height="500" viewBox="0 0 1500 500" preserveAspectRatio="none"></svg>
+</div>
+<script>
+/* ---- badge mark ---- */
+document.getElementById('badge').innerHTML = `
+<svg viewBox="0 0 100 100" fill="none">
+  <rect width="100" height="100" fill="#14150F"/>
+  <path d="M11 67 H89" stroke="#EDEEE4" stroke-opacity=".24" stroke-width="1.4" stroke-dasharray="2.5 3.5"/>
+  <g transform="translate(-2.4,-2.4)" opacity=".9"><path d="M20 67 H49 L80 30" stroke="#5FE3FF" stroke-width="9.5" fill="none"/></g>
+  <path d="M20 67 H49 L80 30" stroke="#D8EE2E" stroke-width="9.5" fill="none"/>
+</svg>`;
+
+/* ---- payoff chart ---- */
+const kx=196, ky=200, zero=158, ex=424, ey=32, sx=38, be = kx + (ky-zero)/((ky-ey)/(ex-kx));
+document.getElementById('chart').innerHTML = `
+<svg viewBox="0 0 466 246" width="470" height="246" fill="none">
+  <!-- washes -->
+  <polygon points="${sx},${zero} ${be},${zero} ${kx},${ky} ${sx},${ky}" fill="rgba(224,36,111,.16)"/>
+  <polygon points="${be},${zero} ${ex},${zero} ${ex},${ey}" fill="rgba(0,147,184,.15)"/>
+  <!-- axes -->
+  <path d="M${sx-8} ${zero} H${ex+12}" stroke="#14150F" stroke-opacity=".35" stroke-width="1.2" stroke-dasharray="3 4"/>
+  <path d="M${kx} 220 V44" stroke="#14150F" stroke-opacity=".28" stroke-width="1.2" stroke-dasharray="3 4"/>
+  <!-- curve: ghost + ink -->
+  <g transform="translate(-3,-3)" opacity=".55">
+    <path d="M${sx} ${ky} H${kx} L${ex} ${ey}" stroke="#0093B8" stroke-width="5" stroke-linejoin="miter" fill="none"/>
+  </g>
+  <path d="M${sx} ${ky} H${kx} L${ex} ${ey}" stroke="#14150F" stroke-width="5" stroke-linejoin="miter" fill="none"/>
+  <!-- labels -->
+  <g font-family="DMMono, monospace" font-size="11.5" letter-spacing="1.4">
+    <text x="${sx+3}" y="224" fill="#E0246F">MAX LOSS = PREMIUM</text>
+    <text x="${kx+9}" y="47" fill="#6E7062">STRIKE</text>
+    <text x="${ex-6}" y="${ey-11}" fill="#0093B8" text-anchor="end">UNCAPPED &#8599;</text>
+  </g>
+</svg>`;
+
+/* ---- paper grain ---- */
+document.getElementById('gr').innerHTML = `
+<filter id="gg"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" seed="11"/>
+<feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope="0.13"/></feComponentTransfer></filter>
+<rect width="1500" height="500" filter="url(#gg)"/>`;
+</script>

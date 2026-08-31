@@ -1,0 +1,1573 @@
+<title>Hockeystick</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+
+<style>
+/* ============================================================
+   HOCKEYSTICK — risograph trading floor
+   ============================================================ */
+
+/* ---- tokens: light (bare :root defines the complete palette) ---- */
+:root{
+  --paper:#EDEEE4;
+  --paper-2:#E4E6D8;
+  --surface:#F7F8F1;
+  --ink:#14150F;
+  --ink-2:#3B3D31;
+  --dim:#6E7062;
+  --line:#14150F;
+  --line-soft:#C7C9B8;
+  --volt:#D8EE2E;
+  --on-volt:#14150F;
+  --up:#0093B8;
+  --down:#E0246F;
+  --up-wash:rgba(0,147,184,.14);
+  --down-wash:rgba(224,36,111,.13);
+  --hard:3px 3px 0 var(--ink);
+  --hard-lg:6px 6px 0 var(--ink);
+  --r:2px;
+
+  /* pinned: surfaces that stay dark in both themes, with their own contrast set */
+  --pin-bg:#14150F;
+  --pin-fg:#EDEEE4;
+  --pin-fg-dim:rgba(237,238,228,.66);
+  --pin-rule:rgba(237,238,228,.18);
+  --pin-up:#5FE3FF;
+  --pin-down:#FF7FB4;
+
+  --step--1:.78rem;
+  --step-0:1rem;
+  --step-1:1.28rem;
+  --step-2:1.66rem;
+  --step-3:2.2rem;
+  --step-4:3rem;
+  --step-5:4.4rem;
+  --step-6:6.2rem;
+
+  color-scheme:light;
+}
+
+/* ---- tokens: dark via OS (loses to an explicit light choice) ---- */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#13140E;
+    --paper-2:#1B1D14;
+    --surface:#1A1C13;
+    --ink:#EDEEE4;
+    --ink-2:#C7C9B9;
+    --dim:#8B8D7C;
+    --line:#3A3D2E;
+    --line-soft:#2A2C20;
+    --volt:#DFF23B;
+    --on-volt:#14150F;
+    --up:#3AD6EE;
+    --down:#FF4D93;
+    --up-wash:rgba(58,214,238,.15);
+    --down-wash:rgba(255,77,147,.14);
+    --hard:3px 3px 0 var(--line);
+    --hard-lg:6px 6px 0 var(--line);
+    color-scheme:dark;
+  }
+}
+
+/* ---- tokens: dark via explicit toggle (beats a light OS) ---- */
+:root[data-theme="dark"]{
+  --paper:#13140E;
+  --paper-2:#1B1D14;
+  --surface:#1A1C13;
+  --ink:#EDEEE4;
+  --ink-2:#C7C9B9;
+  --dim:#8B8D7C;
+  --line:#3A3D2E;
+  --line-soft:#2A2C20;
+  --volt:#DFF23B;
+  --on-volt:#14150F;
+  --up:#3AD6EE;
+  --down:#FF4D93;
+  --up-wash:rgba(58,214,238,.15);
+  --down-wash:rgba(255,77,147,.14);
+  --hard:3px 3px 0 var(--line);
+  --hard-lg:6px 6px 0 var(--line);
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Instrument Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:var(--step-0);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+h1,h2,h3,h4{
+  font-family:"Bricolage Grotesque","Instrument Sans",ui-sans-serif,system-ui,sans-serif;
+  font-weight:800;
+  line-height:.94;
+  letter-spacing:-.028em;
+  text-wrap:balance;
+  margin:0;
+}
+
+p{margin:0}
+a{color:inherit}
+
+:focus-visible{
+  outline:3px solid var(--volt);
+  outline-offset:2px;
+}
+
+/* ---- shared utility type ---- */
+.mono{
+  font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum" 1;
+}
+.eyebrow{
+  font-family:"DM Mono",ui-monospace,monospace;
+  font-size:.7rem;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--dim);
+}
+
+/* ---- layout scaffolding ---- */
+.wrap{
+  width:min(1240px,100% - 3rem);
+  margin-inline:auto;
+}
+.band{
+  border-bottom:1.5px solid var(--line);
+}
+.band-pad{padding-block:clamp(3.5rem,7vw,6.5rem)}
+
+.sec-head{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:1.5rem 2rem;
+  margin-bottom:2.75rem;
+}
+.sec-head h2{
+  font-size:clamp(var(--step-3),5.2vw,var(--step-5));
+  max-width:16ch;
+}
+.sec-head p{
+  color:var(--dim);
+  max-width:46ch;
+  font-size:var(--step-0);
+}
+
+/* ---- ticker rail ---- */
+.rail{
+  background:var(--pin-bg);
+  color:var(--pin-fg);
+  border-bottom:1.5px solid var(--line);
+  overflow:hidden;
+  position:relative;
+}
+.rail-track{
+  display:flex;
+  width:max-content;
+  animation:slide 46s linear infinite;
+}
+.rail-group{display:flex;flex-shrink:0}
+.tick{
+  display:flex;
+  align-items:baseline;
+  gap:.5rem;
+  padding:.6rem 1.15rem;
+  font-family:"DM Mono",monospace;
+  font-variant-numeric:tabular-nums;
+  font-size:.74rem;
+  white-space:nowrap;
+  border-right:1px solid var(--pin-rule);
+}
+.tick b{font-weight:500;letter-spacing:.04em}
+.tick .kind{
+  font-size:.62rem;
+  padding:.05rem .3rem;
+  border:1px solid currentColor;
+  letter-spacing:.08em;
+}
+.tick.c{color:var(--pin-up)}
+.tick.p{color:var(--pin-down)}
+@keyframes slide{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+@media (prefers-reduced-motion: reduce){
+  .rail-track{animation:none}
+}
+
+/* ---- nav ---- */
+.nav{
+  position:sticky;
+  top:0;
+  z-index:60;
+  background:var(--paper);
+  border-bottom:1.5px solid var(--line);
+}
+.nav-in{
+  display:flex;
+  align-items:center;
+  gap:2rem;
+  height:66px;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:.6rem;
+  text-decoration:none;
+  font-family:"Bricolage Grotesque",sans-serif;
+  font-weight:800;
+  font-size:1.16rem;
+  letter-spacing:-.03em;
+  margin-right:auto;
+}
+.brand svg{display:block;flex:none}
+.nav-links{
+  display:flex;
+  gap:1.7rem;
+  font-size:.9rem;
+  font-weight:500;
+}
+.nav-links a{
+  text-decoration:none;
+  color:var(--ink-2);
+  padding-block:.2rem;
+  border-bottom:2px solid transparent;
+  transition:color .15s,border-color .15s;
+}
+.nav-links a:hover{color:var(--ink);border-bottom-color:var(--volt)}
+@media (max-width:900px){.nav-links{display:none}}
+
+/* ---- buttons ---- */
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.5rem;
+  font-family:"Instrument Sans",sans-serif;
+  font-weight:600;
+  font-size:.92rem;
+  letter-spacing:-.01em;
+  padding:.72rem 1.3rem;
+  border:1.5px solid var(--line);
+  border-radius:var(--r);
+  background:var(--surface);
+  color:var(--ink);
+  text-decoration:none;
+  cursor:pointer;
+  box-shadow:var(--hard);
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+.btn:hover{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--line)}
+.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--line)}
+.btn-volt{background:var(--volt);color:var(--on-volt);border-color:var(--line)}
+.btn-ink{background:var(--ink);color:var(--paper)}
+.btn-sm{padding:.48rem .9rem;font-size:.82rem;box-shadow:2px 2px 0 var(--line)}
+@media (prefers-reduced-motion: reduce){
+  .btn,.btn:hover,.btn:active{transform:none;transition:none}
+}
+
+.icon-btn{
+  width:38px;height:38px;
+  display:grid;place-items:center;
+  border:1.5px solid var(--line);
+  border-radius:var(--r);
+  background:var(--surface);
+  color:var(--ink);
+  cursor:pointer;
+  padding:0;
+}
+.icon-btn:hover{background:var(--volt);color:var(--on-volt)}
+
+/* ---- hero ---- */
+.hero{
+  display:grid;
+  grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);
+  gap:clamp(2rem,4vw,4rem);
+  align-items:center;
+  padding-block:clamp(3rem,6vw,5.5rem);
+}
+@media (max-width:1000px){.hero{grid-template-columns:1fr}}
+
+.hero h1{
+  font-size:clamp(3.1rem,9.2vw,6.4rem);
+  letter-spacing:-.042em;
+  margin-bottom:1.4rem;
+}
+.hero h1 .swap{color:var(--volt);-webkit-text-stroke:1.6px var(--ink);paint-order:stroke fill}
+.hero h1 em{
+  font-style:normal;
+  display:inline-block;
+  background:var(--ink);
+  color:var(--paper);
+  padding:0 .16em;
+  transform:rotate(-1.4deg);
+}
+.hero-sub{
+  font-size:clamp(1.02rem,1.5vw,1.16rem);
+  color:var(--ink-2);
+  max-width:44ch;
+  margin-bottom:2rem;
+}
+.hero-cta{display:flex;flex-wrap:wrap;gap:.8rem;margin-bottom:2.2rem}
+.hero-facts{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.5rem 1.9rem;
+  padding-top:1.4rem;
+  border-top:1.5px solid var(--line-soft);
+}
+.hero-facts div{display:flex;flex-direction:column;gap:.1rem}
+.hero-facts b{
+  font-family:"DM Mono",monospace;
+  font-variant-numeric:tabular-nums;
+  font-size:1.3rem;
+  font-weight:500;
+  letter-spacing:-.03em;
+}
+
+/* ---- pricer console ---- */
+.console{
+  background:var(--surface);
+  border:1.5px solid var(--line);
+  border-radius:var(--r);
+  box-shadow:var(--hard-lg);
+  overflow:hidden;
+}
+.console-top{
+  display:flex;
+  align-items:center;
+  gap:.7rem;
+  padding:.7rem 1rem;
+  border-bottom:1.5px solid var(--line);
+  background:var(--paper-2);
+}
+.console-top .dot{width:9px;height:9px;border-radius:50%;background:var(--up);flex:none;animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.28}}
+@media (prefers-reduced-motion: reduce){.console-top .dot{animation:none}}
+.console-top .ttl{font-family:"DM Mono",monospace;font-size:.74rem;letter-spacing:.1em;text-transform:uppercase}
+.console-top .spot{margin-left:auto;font-family:"DM Mono",monospace;font-size:.8rem;font-variant-numeric:tabular-nums;color:var(--dim)}
+
+.seg{
+  display:flex;
+  border:1.5px solid var(--line);
+  border-radius:var(--r);
+  overflow:hidden;
+  background:var(--paper);
+}
+.seg button{
+  flex:1;
+  font-family:"DM Mono",monospace;
+  font-size:.74rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  padding:.5rem .4rem;
+  border:0;
+  background:transparent;
+  color:var(--dim);
+  cursor:pointer;
+}
+.seg button + button{border-left:1.5px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg.updown button[aria-pressed="true"][data-side="call"]{background:var(--up);color:#06131A}
+.seg.updown button[aria-pressed="true"][data-side="put"]{background:var(--down);color:#fff}
+
+.canvas-shell{position:relative;padding:.5rem .5rem 0;background:var(--surface)}
+canvas{display:block;width:100%;height:288px}
+@media (max-width:560px){canvas{height:232px}}
+
+.controls{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1rem 1.25rem;
+  padding:1.1rem 1rem;
+  border-top:1.5px solid var(--line-soft);
+}
+@media (max-width:560px){.controls{grid-template-columns:1fr 1fr}}
+.ctrl label{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap:.5rem;
+  font-family:"DM Mono",monospace;
+  font-size:.68rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--dim);
+  margin-bottom:.35rem;
+}
+.ctrl label output{
+  color:var(--ink);
+  font-size:.85rem;
+  letter-spacing:0;
+  text-transform:none;
+  font-variant-numeric:tabular-nums;
+}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:22px;background:transparent;cursor:pointer;margin:0;
+}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--line-soft);border-radius:99px}
+input[type=range]::-moz-range-track{height:4px;background:var(--line-soft);border-radius:99px}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:17px;height:17px;margin-top:-6.5px;border-radius:50%;
+  background:var(--volt);border:1.5px solid var(--ink);
+}
+input[type=range]::-moz-range-thumb{
+  width:15px;height:15px;border-radius:50%;
+  background:var(--volt);border:1.5px solid var(--ink);
+}
+
+.readout{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  border-top:1.5px solid var(--line);
+  background:var(--paper-2);
+}
+@media (max-width:560px){.readout{grid-template-columns:1fr 1fr}}
+.readout div{
+  padding:.75rem .8rem;
+  border-right:1px solid var(--line-soft);
+}
+.readout div:last-child{border-right:0}
+.readout span{
+  display:block;
+  font-family:"DM Mono",monospace;
+  font-size:.63rem;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+  color:var(--dim);
+  margin-bottom:.15rem;
+}
+.readout b{
+  font-family:"DM Mono",monospace;
+  font-variant-numeric:tabular-nums;
+  font-size:1.02rem;
+  font-weight:500;
+  letter-spacing:-.02em;
+}
+
+/* ---- marquee strip (volt) ---- */
+.strip{
+  background:var(--volt);
+  color:var(--on-volt);
+  border-bottom:1.5px solid var(--line);
+  overflow:hidden;
+  padding:.55rem 0;
+}
+.strip-track{display:flex;width:max-content;animation:slide 30s linear infinite}
+.strip-group{display:flex;flex-shrink:0;align-items:center}
+.strip span{
+  font-family:"Bricolage Grotesque",sans-serif;
+  font-weight:800;
+  font-size:1.05rem;
+  letter-spacing:-.02em;
+  padding:0 1.1rem;
+  white-space:nowrap;
+  display:flex;align-items:center;gap:1.1rem;
+}
+@media (prefers-reduced-motion: reduce){.strip-track{animation:none}}
+
+/* ---- markets board ---- */
+.board-wrap{
+  border:1.5px solid var(--line);
+  border-radius:var(--r);
+  overflow:hidden;
+  background:var(--surface);
+  box-shadow:var(--hard-lg);
+}
+.board-bar{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:.6rem;
+  padding:.75rem 1rem;
+  border-bottom:1.5px solid var(--line);
+  background:var(--paper-2);
+}
+.chip{
+  font-family:"DM Mono",monospace;
+  font-size:.72rem;
+  letter-spacing:.06em;
+  padding:.32rem .7rem;
+  border:1.5px solid var(--line);
+  border-radius:99px;
+  background:var(--surface);
+  color:var(--ink-2);
+  cursor:pointer;
+}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.board-bar .live{
+  margin-left:auto;
+  font-family:"DM Mono",monospace;
+  font-size:.68rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--dim);
+  display:flex;align-items:center;gap:.45rem;
+}
+.board-bar .live i{width:7px;height:7px;border-radius:50%;background:var(--up);display:block}
+
+.board-scroll{overflow-x:auto}
+table{
+  width:100%;
+  min-width:760px;
+  border-collapse:collapse;
+  font-size:.88rem;
+}
+thead th{
+  text-align:right;
+  font-family:"DM Mono",monospace;
+  font-weight:400;
+  font-size:.66rem;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+  color:var(--dim);
+  padding:.65rem 1rem;
+  border-bottom:1.5px solid var(--line);
+  white-space:nowrap;
+  background:var(--surface);
+}
+thead th:first-child,tbody td:first-child{text-align:left}
+tbody td{
+  padding:.72rem 1rem;
+  border-bottom:1px solid var(--line-soft);
+  text-align:right;
+  font-family:"DM Mono",monospace;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:var(--paper-2)}
+.asset{display:flex;align-items:center;gap:.65rem}
+.glyph{
+  width:30px;height:30px;flex:none;
+  display:grid;place-items:center;
+  border:1.5px solid var(--line);
+  border-radius:50%;
+  overflow:hidden;
+  font-family:"Bricolage Grotesque",sans-serif;
+  font-weight:800;
+  font-size:.64rem;
+  background:var(--volt);
+  color:var(--on-volt);
+}
+.glyph svg{width:100%;height:100%;display:block}
+.asset .nm{font-family:"Instrument Sans",sans-serif;font-weight:600;letter-spacing:-.01em}
+.asset .sb{font-size:.68rem;color:var(--dim);letter-spacing:.06em}
+.tag{
+  font-size:.62rem;
+  letter-spacing:.1em;
+  padding:.12rem .42rem;
+  border:1.5px solid currentColor;
+  border-radius:var(--r);
+}
+.tag.c{color:var(--up)}
+.tag.p{color:var(--down)}
+.pos{color:var(--up)}
+.neg{color:var(--down)}
+.iv-cell{display:flex;align-items:center;justify-content:flex-end;gap:.5rem}
+.iv-bar{width:44px;height:5px;background:var(--line-soft);border-radius:99px;overflow:hidden;flex:none}
+.iv-bar i{display:block;height:100%;background:var(--ink)}
+.board-foot{
+  padding:.6rem 1rem;
+  border-top:1.5px solid var(--line);
+  background:var(--paper-2);
+  font-family:"DM Mono",monospace;
+  font-size:.66rem;
+  color:var(--dim);
+  letter-spacing:.04em;
+}
+
+/* ---- steps (a real sequence, so numbered) ---- */
+.steps{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  border:1.5px solid var(--line);
+  border-radius:var(--r);
+  overflow:hidden;
+  background:var(--surface);
+  box-shadow:var(--hard-lg);
+}
+@media (max-width:860px){.steps{grid-template-columns:1fr}}
+.step{padding:1.6rem 1.5rem 1.8rem;border-right:1.5px solid var(--line)}
+.step:last-child{border-right:0}
+@media (max-width:860px){
+  .step{border-right:0;border-bottom:1.5px solid var(--line)}
+  .step:last-child{border-bottom:0}
+}
+.step .n{
+  font-family:"DM Mono",monospace;
+  font-size:.7rem;
+  letter-spacing:.14em;
+  color:var(--dim);
+  display:block;
+  margin-bottom:1.5rem;
+}
+.step h3{font-size:var(--step-2);margin-bottom:.6rem}
+.step p{color:var(--ink-2);font-size:.94rem;max-width:34ch}
+.step .art{height:64px;margin-bottom:1.1rem}
+.step .art svg{height:100%;width:auto;display:block;overflow:visible}
+
+/* ---- strategy cards ---- */
+.strats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1.1rem;
+}
+@media (max-width:1000px){.strats{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.strats{grid-template-columns:1fr}}
+.strat{
+  border:1.5px solid var(--line);
+  border-radius:var(--r);
+  background:var(--surface);
+  padding:1.1rem 1.1rem 1.3rem;
+  box-shadow:var(--hard);
+  display:flex;flex-direction:column;gap:.55rem;
+}
+.strat .mini{height:88px;margin-bottom:.35rem}
+.strat .mini svg{width:100%;height:100%;display:block;overflow:visible}
+.strat h3{font-size:1.16rem}
+.strat p{font-size:.86rem;color:var(--ink-2);flex:1}
+.strat .meta{
+  display:flex;gap:.4rem;flex-wrap:wrap;
+  font-family:"DM Mono",monospace;font-size:.62rem;letter-spacing:.09em;text-transform:uppercase;
+}
+.strat .meta i{font-style:normal;border:1.5px solid var(--line-soft);padding:.14rem .42rem;color:var(--dim)}
+
+/* ---- split feature ---- */
+.split{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:clamp(2rem,4vw,4.5rem);
+  align-items:center;
+}
+@media (max-width:900px){.split{grid-template-columns:1fr}}
+.feat-list{display:flex;flex-direction:column;gap:0;margin-top:1.8rem}
+.feat{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:1rem;
+  padding:1.1rem 0;
+  border-top:1.5px solid var(--line-soft);
+}
+.feat:last-child{border-bottom:1.5px solid var(--line-soft)}
+.feat .k{
+  font-family:"DM Mono",monospace;
+  font-size:.68rem;
+  letter-spacing:.1em;
+  color:var(--dim);
+  padding-top:.28rem;
+}
+.feat h3{font-size:1.1rem;margin-bottom:.25rem}
+.feat p{font-size:.9rem;color:var(--ink-2);max-width:44ch}
+
+/* ---- vault / earn panel ---- */
+.vault{
+  border:1.5px solid var(--line);
+  border-radius:var(--r);
+  background:var(--pin-bg);
+  color:var(--pin-fg);
+  box-shadow:var(--hard-lg);
+  overflow:hidden;
+}
+.vault-head{padding:1.5rem 1.5rem 1.2rem;border-bottom:1.5px solid var(--pin-rule)}
+.vault-head .eyebrow{color:var(--pin-fg-dim)}
+.vault-head h3{font-size:var(--step-3);margin-top:.5rem;color:var(--pin-fg)}
+.vault-rows{display:grid;grid-template-columns:1fr 1fr}
+.vault-rows > div{padding:1.1rem 1.5rem;border-right:1px solid var(--pin-rule);border-bottom:1px solid var(--pin-rule)}
+.vault-rows > div:nth-child(2n){border-right:0}
+.vault-rows span{
+  display:block;font-family:"DM Mono",monospace;font-size:.63rem;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--pin-fg-dim);margin-bottom:.2rem;
+}
+.vault-rows b{font-family:"DM Mono",monospace;font-variant-numeric:tabular-nums;font-size:1.5rem;font-weight:500;letter-spacing:-.03em}
+.vault-note{padding:1.1rem 1.5rem;font-size:.84rem;color:var(--pin-fg-dim);display:flex;gap:.7rem;align-items:flex-start}
+
+/* ---- stats band ---- */
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+}
+@media (max-width:820px){.stats{grid-template-columns:1fr 1fr}}
+.stat{
+  padding:2.2rem 1.5rem;
+  border-right:1.5px solid var(--line);
+}
+.stat:last-child{border-right:0}
+@media (max-width:820px){
+  .stat:nth-child(2n){border-right:0}
+  .stat:nth-child(-n+2){border-bottom:1.5px solid var(--line)}
+}
+.stat b{
+  display:block;
+  font-family:"Bricolage Grotesque",sans-serif;
+  font-weight:800;
+  font-size:clamp(2.1rem,4.6vw,3.2rem);
+  letter-spacing:-.045em;
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+  margin-bottom:.45rem;
+}
+.stat span{font-size:.86rem;color:var(--dim)}
+
+/* ---- faq ---- */
+.faq{border-top:1.5px solid var(--line)}
+details{border-bottom:1.5px solid var(--line-soft)}
+summary{
+  list-style:none;
+  cursor:pointer;
+  padding:1.25rem 0;
+  display:flex;
+  align-items:center;
+  gap:1.2rem;
+  font-family:"Bricolage Grotesque",sans-serif;
+  font-weight:700;
+  font-size:1.14rem;
+  letter-spacing:-.02em;
+}
+summary::-webkit-details-marker{display:none}
+summary::after{
+  content:"+";
+  margin-left:auto;
+  font-family:"DM Mono",monospace;
+  font-size:1.3rem;
+  color:var(--dim);
+  transition:transform .18s ease;
+}
+details[open] summary::after{transform:rotate(45deg)}
+details p{padding:0 0 1.35rem;color:var(--ink-2);max-width:66ch;font-size:.95rem}
+@media (prefers-reduced-motion: reduce){summary::after{transition:none}}
+
+/* ---- final cta ---- */
+.cta{
+  background:var(--volt);
+  color:var(--on-volt);
+  border-bottom:1.5px solid var(--line);
+  text-align:center;
+  padding-block:clamp(4rem,8vw,7rem);
+}
+.cta h2{font-size:clamp(2.6rem,8.4vw,5.6rem);letter-spacing:-.045em;margin-bottom:1.1rem}
+.cta p{max-width:46ch;margin:0 auto 2.2rem;font-size:1.05rem;opacity:.82}
+.cta .btns{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap}
+.cta .btn{box-shadow:3px 3px 0 var(--on-volt);border-color:var(--on-volt)}
+.cta .btn:hover{box-shadow:1px 1px 0 var(--on-volt)}
+
+/* ---- footer ---- */
+.foot{padding-block:3rem 2.5rem}
+.foot-grid{
+  display:grid;
+  grid-template-columns:1.6fr repeat(3,1fr);
+  gap:2rem;
+  margin-bottom:2.5rem;
+}
+@media (max-width:820px){.foot-grid{grid-template-columns:1fr 1fr}}
+.foot h4{
+  font-family:"DM Mono",monospace;
+  font-weight:400;font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:.9rem;
+}
+.foot ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.5rem;font-size:.9rem}
+.foot ul a{text-decoration:none;color:var(--ink-2)}
+.foot ul a:hover{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.foot .blurb{font-size:.9rem;color:var(--dim);max-width:38ch;margin-top:.9rem}
+.disclaim{
+  border-top:1.5px solid var(--line-soft);
+  padding-top:1.4rem;
+  font-size:.76rem;
+  color:var(--dim);
+  max-width:100ch;
+  line-height:1.6;
+}
+
+/* ---- reveal ---- */
+.rv{opacity:0;transform:translateY(16px);transition:opacity .55s ease,transform .55s ease}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion: reduce){
+  .rv{opacity:1;transform:none;transition:none}
+}
+</style>
+
+<!-- ============ TICKER RAIL ============ -->
+<div class="rail" aria-hidden="true">
+  <div class="rail-track">
+    <div class="rail-group" id="railA"></div>
+    <div class="rail-group" id="railB"></div>
+  </div>
+</div>
+
+<!-- ============ NAV ============ -->
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top">
+      <svg width="30" height="22" viewBox="0 0 30 22" fill="none" aria-hidden="true">
+        <path d="M1 15h11l16-13" stroke="currentColor" stroke-width="3" stroke-linecap="square"/>
+        <circle cx="12" cy="15" r="3.4" fill="var(--volt)" stroke="currentColor" stroke-width="2.2"/>
+      </svg>
+      Hockeystick
+    </a>
+    <nav class="nav-links">
+      <a href="#pricer">Pricer</a>
+      <a href="#markets">Markets</a>
+      <a href="#how">How it works</a>
+      <a href="#strategies">Strategies</a>
+      <a href="#earn">Earn</a>
+    </nav>
+    <button class="icon-btn" id="themeBtn" aria-label="Switch colour theme" title="Switch colour theme">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" aria-hidden="true">
+        <path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/>
+      </svg>
+    </button>
+    <a class="btn btn-volt btn-sm" href="#cta">Open app</a>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="band" id="top">
+  <div class="wrap hero">
+    <div>
+      <p class="eyebrow" style="margin-bottom:1.1rem">On-chain options &middot; USDC settled &middot; no liquidations</p>
+      <h1>Bet the <span class="swap">shape</span><br>of the move.<br><em>Not the size</em></h1>
+      <p class="hero-sub">Buy a call or a put on any token, index or commodity. Your loss is capped at the premium you paid &mdash; the moment you click. No margin call, no liquidation price, no funding bleeding you out at 4am.</p>
+      <div class="hero-cta">
+        <a class="btn btn-volt" href="#cta">Start trading</a>
+        <a class="btn" href="#pricer">Price a contract &rarr;</a>
+      </div>
+      <div class="hero-facts">
+        <div><b id="f1">184</b><span class="eyebrow">ms median fill</span></div>
+        <div><b>$0.004</b><span class="eyebrow">per contract</span></div>
+        <div><b id="f3">214</b><span class="eyebrow">live markets</span></div>
+      </div>
+    </div>
+
+    <!-- live Black-Scholes pricer -->
+    <div class="console" id="pricer">
+      <div class="console-top">
+        <i class="dot"></i>
+        <span class="ttl">Payoff at expiry</span>
+        <span class="spot mono">SOL spot <b id="spotOut">214.60</b></span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;padding:.85rem 1rem 0">
+        <div class="seg updown" role="group" aria-label="Contract side">
+          <button data-side="call" aria-pressed="true">Call</button>
+          <button data-side="put" aria-pressed="false">Put</button>
+        </div>
+        <div class="seg" role="group" aria-label="Position">
+          <button data-pos="long" aria-pressed="true">Buy</button>
+          <button data-pos="short" aria-pressed="false">Sell</button>
+        </div>
+      </div>
+
+      <div class="canvas-shell">
+        <canvas id="payoff" role="img" aria-label="Profit and loss at expiry plotted against the underlying price"></canvas>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="strike">Strike <output id="strikeOut">240</output></label>
+          <input type="range" id="strike" min="120" max="330" step="5" value="240">
+        </div>
+        <div class="ctrl">
+          <label for="days">Expiry <output id="daysOut">30d</output></label>
+          <input type="range" id="days" min="1" max="180" step="1" value="30">
+        </div>
+        <div class="ctrl">
+          <label for="iv">IV <output id="ivOut">72%</output></label>
+          <input type="range" id="iv" min="20" max="180" step="1" value="72">
+        </div>
+      </div>
+
+      <div class="readout">
+        <div><span>Premium</span><b id="rPrem">—</b></div>
+        <div><span>Breakeven</span><b id="rBe">—</b></div>
+        <div><span>Max loss</span><b id="rMax">—</b></div>
+        <div><span>Delta</span><b id="rDelta">—</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VOLT STRIP ============ -->
+<div class="strip" aria-hidden="true">
+  <div class="strip-track">
+    <div class="strip-group">
+      <span>CALLS &amp; PUTS <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg> PERMISSIONLESS LISTING <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg> LOSS CAPPED AT PREMIUM <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg> SETTLES IN USDC <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg></span>
+    </div>
+    <div class="strip-group">
+      <span>CALLS &amp; PUTS <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg> PERMISSIONLESS LISTING <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg> LOSS CAPPED AT PREMIUM <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg> SETTLES IN USDC <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg></span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MARKETS ============ -->
+<section class="band band-pad" id="markets">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <h2>Every market, one book</h2>
+      <p>Majors, memes, commodities and equity indices sit in the same order book with the same collateral. Switch underlyings without switching accounts.</p>
+    </div>
+    <div class="board-wrap rv">
+      <div class="board-bar">
+        <button class="chip" aria-pressed="true" data-filter="all">All</button>
+        <button class="chip" aria-pressed="false" data-filter="major">Majors</button>
+        <button class="chip" aria-pressed="false" data-filter="meme">Memes</button>
+        <button class="chip" aria-pressed="false" data-filter="rwa">Commodities &amp; RWA</button>
+        <span class="live"><i></i> Sample book</span>
+      </div>
+      <div class="board-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Underlying</th>
+              <th scope="col">Side</th>
+              <th scope="col">Strike</th>
+              <th scope="col">Expiry</th>
+              <th scope="col">Mark</th>
+              <th scope="col">24h</th>
+              <th scope="col">IV</th>
+              <th scope="col">Open int.</th>
+            </tr>
+          </thead>
+          <tbody id="boardBody"></tbody>
+        </table>
+      </div>
+      <div class="board-foot">Illustrative book — figures shown are sample data for layout, not live quotes.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="band band-pad" id="how">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <h2>Three steps, then you're done</h2>
+      <p>The whole lifecycle of a long option. There is no fourth step where someone calls you for more money.</p>
+    </div>
+    <div class="steps rv">
+      <div class="step">
+        <span class="n">STEP 01 / PICK</span>
+        <div class="art">
+          <svg viewBox="0 0 120 64" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+            <rect x="2" y="8" width="52" height="48" stroke="currentColor"/>
+            <rect x="66" y="8" width="52" height="48" stroke="var(--volt)" stroke-width="4"/>
+            <path d="M12 22h32M12 32h22M12 42h28" stroke-width="2" opacity=".4"/>
+            <path d="M76 22h32M76 32h22M76 42h28" stroke-width="2" opacity=".4"/>
+            <path d="M78 46l10-14 8 10 10-16" stroke="var(--volt)" stroke-width="3"/>
+          </svg>
+        </div>
+        <h3>Choose a strike</h3>
+        <p>Pick the underlying, the strike and the date. The pricer shows you the exact payoff curve before you commit a cent.</p>
+      </div>
+      <div class="step">
+        <span class="n">STEP 02 / PAY</span>
+        <div class="art">
+          <svg viewBox="0 0 120 64" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+            <circle cx="34" cy="32" r="22" stroke="currentColor"/>
+            <path d="M34 20v24M28 26h9a4 4 0 010 8h-6a4 4 0 000 8h9" stroke-width="2.6"/>
+            <path d="M64 32h44M100 24l10 8-10 8" stroke="var(--volt)" stroke-width="3.4" stroke-linecap="square"/>
+          </svg>
+        </div>
+        <h3>Pay the premium</h3>
+        <p>USDC leaves your wallet once. That number is your entire downside for the life of the contract — it can never grow.</p>
+      </div>
+      <div class="step">
+        <span class="n">STEP 03 / SETTLE</span>
+        <div class="art">
+          <svg viewBox="0 0 120 64" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+            <path d="M4 48h44l60-40" stroke="currentColor" stroke-width="3.4"/>
+            <path d="M48 48l60-40v34H48z" fill="var(--volt)" opacity=".35" stroke="none"/>
+            <circle cx="48" cy="48" r="4.5" fill="var(--volt)" stroke="currentColor" stroke-width="2.4"/>
+            <path d="M4 56h112" stroke-width="1.6" opacity=".3"/>
+          </svg>
+        </div>
+        <h3>Settle on-chain</h3>
+        <p>At expiry the oracle price decides it. In the money, USDC lands in your wallet automatically. Out of the money, it simply ends.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STRATEGIES ============ -->
+<section class="band band-pad" id="strategies">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <h2>Four shapes worth knowing</h2>
+      <p>Each one is a different opinion about the market. The curve underneath is the whole strategy — read it left to right as price rises.</p>
+    </div>
+    <div class="strats" id="stratGrid"></div>
+  </div>
+</section>
+
+<!-- ============ WHY / SPLIT ============ -->
+<section class="band band-pad">
+  <div class="wrap split">
+    <div class="rv">
+      <p class="eyebrow">Built for people who read the Greeks</p>
+      <h2 style="font-size:clamp(var(--step-3),5vw,var(--step-4));margin-top:.9rem">Serious plumbing under a friendly surface</h2>
+      <div class="feat-list">
+        <div class="feat">
+          <span class="k">01</span>
+          <div><h3>Off-chain match, on-chain settle</h3><p>Quotes cross in a sequencer-speed matching engine; only the fill touches the chain. You get exchange latency with self-custody.</p></div>
+        </div>
+        <div class="feat">
+          <span class="k">02</span>
+          <div><h3>Delta-hedged liquidity pool</h3><p>The pool that takes the other side of your trade re-hedges its net delta on every fill, so quotes stay tight when volatility jumps.</p></div>
+        </div>
+        <div class="feat">
+          <span class="k">03</span>
+          <div><h3>Per-strike exposure caps</h3><p>No single strike can absorb more risk than the pool can hedge. One whale cannot drain the book on a Sunday night.</p></div>
+        </div>
+        <div class="feat">
+          <span class="k">04</span>
+          <div><h3>Oracle-settled, dispute-windowed</h3><p>Expiry marks come from a median of independent price feeds with a challenge window before funds move.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="rv" id="earn">
+      <div class="vault">
+        <div class="vault-head">
+          <p class="eyebrow">Other side of the trade</p>
+          <h3>Sell volatility,<br>collect the premium</h3>
+        </div>
+        <div class="vault-rows">
+          <div><span>Pool TVL</span><b>$41.2M</b></div>
+          <div><span>Trailing 30d yield</span><b>18.4%</b></div>
+          <div><span>Utilisation</span><b>63%</b></div>
+          <div><span>Hedge frequency</span><b>every fill</b></div>
+        </div>
+        <div class="vault-note">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex:none;margin-top:2px" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+          <span>Deposit USDC and you are underwriting the options traders buy. Premiums accrue continuously; a sharp move against the pool can still print a losing week. Yield shown is trailing, not promised.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STATS ============ -->
+<section class="band">
+  <div class="wrap stats">
+    <div class="stat rv"><b>$3.84B</b><span>Notional traded since launch</span></div>
+    <div class="stat rv"><b>99.97%</b><span>Fill rate, trailing 90 days</span></div>
+    <div class="stat rv"><b>0</b><span>Liquidations, by design</span></div>
+    <div class="stat rv"><b>214</b><span>Markets live right now</span></div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="band band-pad">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <h2>Straight answers</h2>
+      <p>The questions people actually ask before their first contract.</p>
+    </div>
+    <div class="faq rv">
+      <details open>
+        <summary>Can I lose more than I put in?</summary>
+        <p>Not when you buy. A long call or long put costs you the premium and nothing else — there is no margin account to top up and no liquidation price to defend. Selling options is different: writing a contract means you take on the obligation, so those positions are collateralised and can lose more than the premium you collected. The app labels which is which before you sign.</p>
+      </details>
+      <details>
+        <summary>What happens if I forget about a position?</summary>
+        <p>Nothing bad. Contracts settle automatically against the oracle price at expiry. If you finish in the money the USDC is credited to your wallet without you doing anything; if you finish out of the money the contract expires and no further action is possible or needed.</p>
+      </details>
+      <details>
+        <summary>Where does the liquidity come from?</summary>
+        <p>A delta-hedged pool takes the other side of every trade, funded by depositors who are paid the premium flow. The pool re-hedges its net exposure on each fill rather than sitting naked short volatility, which is what lets it quote continuously instead of widening out the moment the market moves.</p>
+      </details>
+      <details>
+        <summary>How is the premium calculated?</summary>
+        <p>A Black-Scholes surface fitted to live implied volatility, adjusted for pool utilisation and the skew of existing open interest. The pricer at the top of this page runs the same core model, so what you see there is the shape of what you would actually pay.</p>
+      </details>
+      <details>
+        <summary>Which assets can be listed?</summary>
+        <p>Any asset with a qualifying oracle feed and enough depth to hedge against. Majors and commodities are listed by default; long-tail tokens can be listed permissionlessly once their feed clears the liquidity threshold, which is what keeps meme markets from being unhedgeable.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="cta" id="cta">
+  <div class="wrap">
+    <h2>Know exactly<br>what you can lose</h2>
+    <p>Connect a wallet, pick a strike, see your maximum loss on screen before you sign. That's the whole pitch.</p>
+    <div class="btns">
+      <a class="btn btn-ink" href="#top">Launch the app</a>
+      <a class="btn" href="#pricer">Play with the pricer</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="band foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="#top" style="margin-right:0">
+          <svg width="30" height="22" viewBox="0 0 30 22" fill="none" aria-hidden="true">
+            <path d="M1 15h11l16-13" stroke="currentColor" stroke-width="3" stroke-linecap="square"/>
+            <circle cx="12" cy="15" r="3.4" fill="var(--volt)" stroke="currentColor" stroke-width="2.2"/>
+          </svg>
+          Hockeystick
+        </a>
+        <p class="blurb">On-chain options with a capped downside. Built for traders who would rather define their risk than manage it.</p>
+      </div>
+      <div>
+        <h4>Trade</h4>
+        <ul>
+          <li><a href="#markets">Markets</a></li>
+          <li><a href="#pricer">Pricer</a></li>
+          <li><a href="#strategies">Strategies</a></li>
+          <li><a href="#earn">Earn</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Build</h4>
+        <ul>
+          <li><a href="#how">Protocol docs</a></li>
+          <li><a href="#how">Contracts</a></li>
+          <li><a href="#how">Audits</a></li>
+          <li><a href="#how">Status</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#top">About</a></li>
+          <li><a href="#top">Careers</a></li>
+          <li><a href="#top">Terms</a></li>
+          <li><a href="#top">Risk policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="disclaim"><strong>Hockeystick is a concept design.</strong> Nothing here is a live product, an offer, or financial advice. All market data, volumes, yields and statistics shown are illustrative sample values created for this layout. Options carry substantial risk: buyers can lose the entire premium paid, and sellers can lose considerably more than they receive. Derivatives trading is restricted or prohibited in many jurisdictions.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var root = document.documentElement;
+  var css = function (name) {
+    return getComputedStyle(root).getPropertyValue(name).trim();
+  };
+  var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------------- theme toggle ---------------- */
+  var themeBtn = document.getElementById("themeBtn");
+  themeBtn.addEventListener("click", function () {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    var cur = root.getAttribute("data-theme") || (dark ? "dark" : "light");
+    root.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+    redrawAll();
+  });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", redrawAll);
+
+  /* ---------------- Black-Scholes ---------------- */
+  function ncdf(x) {
+    var a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741,
+        a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
+    var sign = x < 0 ? -1 : 1;
+    var z = Math.abs(x) / Math.SQRT2;
+    var t = 1 / (1 + p * z);
+    var y = 1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-z * z);
+    return 0.5 * (1 + sign * y);
+  }
+
+  var RATE = 0.045;
+
+  function bs(S, K, T, vol, isCall) {
+    if (T <= 0 || vol <= 0) {
+      var intr = isCall ? Math.max(S - K, 0) : Math.max(K - S, 0);
+      return { price: intr, delta: isCall ? (S > K ? 1 : 0) : (S < K ? -1 : 0) };
+    }
+    var sq = vol * Math.sqrt(T);
+    var d1 = (Math.log(S / K) + (RATE + vol * vol / 2) * T) / sq;
+    var d2 = d1 - sq;
+    var disc = Math.exp(-RATE * T);
+    if (isCall) {
+      return { price: S * ncdf(d1) - K * disc * ncdf(d2), delta: ncdf(d1) };
+    }
+    return { price: K * disc * ncdf(-d2) - S * ncdf(-d1), delta: ncdf(d1) - 1 };
+  }
+
+  /* ---------------- pricer state ---------------- */
+  var SPOT = 214.6;
+  var state = { side: "call", pos: "long", K: 240, days: 30, iv: 72 };
+
+  var el = {
+    strike: document.getElementById("strike"),
+    days: document.getElementById("days"),
+    iv: document.getElementById("iv"),
+    strikeOut: document.getElementById("strikeOut"),
+    daysOut: document.getElementById("daysOut"),
+    ivOut: document.getElementById("ivOut"),
+    prem: document.getElementById("rPrem"),
+    be: document.getElementById("rBe"),
+    max: document.getElementById("rMax"),
+    delta: document.getElementById("rDelta"),
+    spot: document.getElementById("spotOut")
+  };
+
+  var money = function (n) {
+    return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  document.querySelectorAll(".seg button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var group = b.parentElement;
+      group.querySelectorAll("button").forEach(function (o) { o.setAttribute("aria-pressed", "false"); });
+      b.setAttribute("aria-pressed", "true");
+      if (b.dataset.side) state.side = b.dataset.side;
+      if (b.dataset.pos) state.pos = b.dataset.pos;
+      update();
+    });
+  });
+
+  [["strike", "K"], ["days", "days"], ["iv", "iv"]].forEach(function (pair) {
+    el[pair[0]].addEventListener("input", function () {
+      state[pair[1]] = +this.value;
+      update();
+    });
+  });
+
+  /* ---------------- payoff canvas ---------------- */
+  var cv = document.getElementById("payoff");
+  var ctx = cv.getContext("2d");
+
+  function sizeCanvas() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var r = cv.getBoundingClientRect();
+    cv.width = Math.round(r.width * dpr);
+    cv.height = Math.round(r.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { w: r.width, h: r.height };
+  }
+
+  function drawPayoff() {
+    var dim = sizeCanvas();
+    var W = dim.w, H = dim.h;
+    if (!W || !H) return;
+
+    var padL = 46, padR = 14, padT = 14, padB = 30;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    ctx.clearRect(0, 0, W, H);
+
+    var isCall = state.side === "call";
+    var long = state.pos === "long";
+    var T = state.days / 365;
+    var vol = state.iv / 100;
+    var q = bs(SPOT, state.K, T, vol, isCall);
+    var prem = q.price;
+
+    var lo = SPOT * 0.45, hi = SPOT * 1.6;
+    var N = 240;
+
+    function pnl(S) {
+      var intr = isCall ? Math.max(S - state.K, 0) : Math.max(state.K - S, 0);
+      var v = intr - prem;
+      return long ? v : -v;
+    }
+
+    var maxP = -Infinity, minP = Infinity;
+    for (var i = 0; i <= N; i++) {
+      var v = pnl(lo + (hi - lo) * i / N);
+      if (v > maxP) maxP = v;
+      if (v < minP) minP = v;
+    }
+    var span = Math.max(Math.abs(maxP), Math.abs(minP)) * 1.25 || 1;
+    var yTop = span, yBot = -span;
+
+    var X = function (s) { return padL + (s - lo) / (hi - lo) * plotW; };
+    var Y = function (p) { return padT + (yTop - p) / (yTop - yBot) * plotH; };
+
+    var inkC = css("--ink"), dimC = css("--dim"), lineC = css("--line-soft");
+    var upC = css("--up"), downC = css("--down"), voltC = css("--volt");
+
+    /* grid */
+    ctx.strokeStyle = lineC;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 4]);
+    for (var g = 1; g <= 4; g++) {
+      var gy = padT + plotH * g / 5;
+      ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(W - padR, gy); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
+    /* fills */
+    var zeroY = Y(0);
+    function region(above) {
+      ctx.beginPath();
+      ctx.moveTo(X(lo), zeroY);
+      for (var i = 0; i <= N; i++) {
+        var s = lo + (hi - lo) * i / N;
+        var p = pnl(s);
+        var yy = above ? Math.min(Y(p), zeroY) : Math.max(Y(p), zeroY);
+        ctx.lineTo(X(s), yy);
+      }
+      ctx.lineTo(X(hi), zeroY);
+      ctx.closePath();
+      ctx.fillStyle = above ? css("--up-wash") : css("--down-wash");
+      ctx.fill();
+    }
+    region(true);
+    region(false);
+
+    /* zero line */
+    ctx.strokeStyle = dimC;
+    ctx.lineWidth = 1.25;
+    ctx.beginPath(); ctx.moveTo(padL, zeroY); ctx.lineTo(W - padR, zeroY); ctx.stroke();
+
+    /* strike marker */
+    if (state.K >= lo && state.K <= hi) {
+      ctx.strokeStyle = dimC;
+      ctx.setLineDash([3, 3]);
+      ctx.lineWidth = 1.25;
+      ctx.beginPath(); ctx.moveTo(X(state.K), padT); ctx.lineTo(X(state.K), H - padB); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = dimC;
+      ctx.font = '500 10px "DM Mono", monospace';
+      ctx.textAlign = "center";
+      ctx.fillText("K " + state.K, X(state.K), padT + 9);
+    }
+
+    /* spot marker */
+    ctx.strokeStyle = voltC;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(X(SPOT), padT); ctx.lineTo(X(SPOT), H - padB); ctx.stroke();
+
+    /* the hockey stick */
+    ctx.strokeStyle = inkC;
+    ctx.lineWidth = 3;
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    for (var i2 = 0; i2 <= N; i2++) {
+      var s2 = lo + (hi - lo) * i2 / N;
+      var pt = [X(s2), Y(pnl(s2))];
+      if (i2 === 0) ctx.moveTo(pt[0], pt[1]); else ctx.lineTo(pt[0], pt[1]);
+    }
+    ctx.stroke();
+
+    /* breakeven dot */
+    var be = isCall ? state.K + prem : state.K - prem;
+    if (be >= lo && be <= hi) {
+      ctx.beginPath();
+      ctx.arc(X(be), zeroY, 5, 0, Math.PI * 2);
+      ctx.fillStyle = voltC; ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = inkC; ctx.stroke();
+    }
+
+    /* axes labels */
+    ctx.fillStyle = dimC;
+    ctx.font = '400 10px "DM Mono", monospace';
+    ctx.textAlign = "right";
+    ctx.fillText("+" + Math.round(span), padL - 8, padT + 10);
+    ctx.fillText("0", padL - 8, zeroY + 3.5);
+    ctx.fillText("-" + Math.round(span), padL - 8, H - padB - 2);
+    ctx.textAlign = "center";
+    ctx.fillText(Math.round(lo), padL + 4, H - padB + 16);
+    ctx.fillText(Math.round(hi), W - padR - 12, H - padB + 16);
+    ctx.textAlign = "left";
+    ctx.fillText("P/L per contract, USDC", padL + 4, H - 4);
+
+    /* readout */
+    el.prem.textContent = money(prem);
+    el.prem.style.color = "";
+    el.be.textContent = money(be);
+    if (long) {
+      el.max.textContent = "−" + money(prem).slice(1);
+    } else if (isCall) {
+      el.max.textContent = "Uncapped";
+    } else {
+      el.max.textContent = "−" + money(Math.max(state.K - prem, 0)).slice(1);
+    }
+    el.max.className = "neg";
+    var d = long ? q.delta : -q.delta;
+    el.delta.textContent = (d >= 0 ? "+" : "−") + Math.abs(d).toFixed(2);
+    el.delta.className = d >= 0 ? "pos" : "neg";
+  }
+
+  function update() {
+    el.strikeOut.textContent = state.K;
+    el.daysOut.textContent = state.days + "d";
+    el.ivOut.textContent = state.iv + "%";
+    drawPayoff();
+  }
+
+  /* ---------------- strategy minis ---------------- */
+  var strategies = [
+    {
+      name: "Long call",
+      view: "Up, and soon",
+      copy: "You think it rips before expiry. Costs the premium, pays the whole move above your strike.",
+      meta: ["Bullish", "Loss capped", "Long vol"],
+      f: function (x) { return Math.max(x - 0.55, 0) - 0.16; }
+    },
+    {
+      name: "Long put",
+      view: "Down, or hedged",
+      copy: "Insurance on a bag you already hold, or a clean short with a floor under your losses.",
+      meta: ["Bearish", "Loss capped", "Long vol"],
+      f: function (x) { return Math.max(0.55 - x, 0) - 0.16; }
+    },
+    {
+      name: "Covered call",
+      view: "Flat to mildly up",
+      copy: "Hold the spot, sell the upside above a strike, keep the premium. Income while you wait.",
+      meta: ["Neutral", "Capped upside", "Short vol"],
+      f: function (x) { return Math.min(x, 0.68) - 0.5 + 0.12; }
+    },
+    {
+      name: "Straddle",
+      view: "Big move, no idea which way",
+      copy: "Buy the call and the put at the same strike. Wins on violence in either direction.",
+      meta: ["Volatile", "Loss capped", "Long vol"],
+      f: function (x) { return Math.abs(x - 0.55) - 0.22; }
+    }
+  ];
+
+  function miniSvg(f) {
+    var W = 260, H = 88, pad = 8;
+    var pts = [], zero = null;
+    var vals = [];
+    for (var i = 0; i <= 60; i++) vals.push(f(i / 60));
+    var mx = Math.max.apply(null, vals.map(Math.abs)) * 1.2 || 1;
+    for (var j = 0; j <= 60; j++) {
+      var x = pad + (W - pad * 2) * j / 60;
+      var y = H / 2 - (vals[j] / mx) * (H / 2 - pad);
+      pts.push(x.toFixed(1) + "," + y.toFixed(1));
+    }
+    zero = H / 2;
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true">' +
+      '<polyline points="' + pts.join(" ") + ' ' + (W - pad) + ',' + zero + ' ' + pad + ',' + zero + '" fill="var(--up-wash)" stroke="none"/>' +
+      '<line x1="' + pad + '" y1="' + zero + '" x2="' + (W - pad) + '" y2="' + zero + '" stroke="var(--line-soft)" stroke-width="1.5" stroke-dasharray="3 3"/>' +
+      '<polyline points="' + pts.join(" ") + '" fill="none" stroke="var(--ink)" stroke-width="2.6" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>' +
+      '</svg>';
+  }
+
+  document.getElementById("stratGrid").innerHTML = strategies.map(function (s) {
+    return '<article class="strat">' +
+      '<div class="mini">' + miniSvg(s.f) + '</div>' +
+      '<p class="eyebrow">' + s.view + '</p>' +
+      '<h3>' + s.name + '</h3>' +
+      '<p>' + s.copy + '</p>' +
+      '<div class="meta">' + s.meta.map(function (m) { return "<i>" + m + "</i>"; }).join("") + '</div>' +
+      '</article>';
+  }).join("");
+
+
+  /* ---------------- asset marks (inline SVG: CSP blocks remote images) ----------------
+     Drawn to a 100x100 box and clipped to the circle by .glyph. Crypto and commodity
+     marks follow each asset's own identity; NDX uses a neutral index glyph rather than
+     reproducing an exchange wordmark. */
+  var LOGOS = {
+    SOL: '<svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="hsSol" gradientUnits="userSpaceOnUse" x1="10" y1="80" x2="90" y2="20"><stop offset="0" stop-color="#9945FF"/><stop offset="1" stop-color="#14F195"/></linearGradient></defs><rect width="100" height="100" fill="#0B0B14"/><path d="M30 24H86L70 38H14Z" fill="url(#hsSol)"/><path d="M14 43H70L86 57H30Z" fill="url(#hsSol)"/><path d="M30 62H86L70 76H14Z" fill="url(#hsSol)"/></svg>',
+
+    ETH: '<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#627EEA"/><path d="M50 10 27 51l23 13z" fill="#fff" fill-opacity=".62"/><path d="M50 10l23 41-23 13z" fill="#fff"/><path d="M50 69 27 56l23 34z" fill="#fff" fill-opacity=".62"/><path d="M50 90V69l23-13z" fill="#fff"/></svg>',
+
+    BTC: '<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#F7931A"/><rect x="37" y="14" width="8" height="72" fill="#fff"/><rect x="54" y="14" width="8" height="72" fill="#fff"/><text x="50" y="73" text-anchor="middle" font-family="Bricolage Grotesque, Helvetica, Arial, sans-serif" font-weight="800" font-size="62" fill="#fff">B</text></svg>',
+
+    WIF: '<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#E3A263"/><path d="M1 62 9 32l30 14z" fill="#AE6B2B"/><path d="M99 62 91 32 61 46z" fill="#AE6B2B"/><ellipse cx="50" cy="76" rx="21" ry="15" fill="#F8E3C8"/><ellipse cx="50" cy="70" rx="6.5" ry="5" fill="#2A2118"/><circle cx="32" cy="57" r="5" fill="#2A2118"/><circle cx="68" cy="57" r="5" fill="#2A2118"/><rect width="100" height="28" fill="#FAF8F1"/><rect y="26" width="100" height="12" fill="#CFCBB6"/></svg>',
+
+    PEPE: '<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#5DA84B"/><circle cx="31" cy="40" r="17" fill="#fff"/><circle cx="69" cy="40" r="17" fill="#fff"/><circle cx="35" cy="43" r="6.5" fill="#14140F"/><circle cx="65" cy="43" r="6.5" fill="#14140F"/><path d="M22 68q28 20 56 0" stroke="#B8514A" stroke-width="8" fill="none" stroke-linecap="round"/></svg>',
+
+    BONK: '<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#F3A83C"/><path d="M2 46 12 8l30 20z" fill="#C4761A"/><path d="M98 46 88 8 58 28z" fill="#C4761A"/><ellipse cx="50" cy="70" rx="22" ry="16" fill="#FBEBD2"/><ellipse cx="50" cy="63" rx="7" ry="5.5" fill="#241C12"/><circle cx="32" cy="47" r="5.5" fill="#241C12"/><circle cx="68" cy="47" r="5.5" fill="#241C12"/></svg>',
+
+    XAU: '<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#E8C34A"/><path d="M36 40h28l7 17H29z" fill="#6E5312"/><path d="M12 60h28l7 17H5z" fill="#8A6A1C"/><path d="M60 60h28l7 17H53z" fill="#8A6A1C"/></svg>',
+
+    WTI: '<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#24241C"/><path d="M50 14s26 30 26 45a26 26 0 0 1-52 0c0-15 26-45 26-45z" fill="#E9A93C"/><path d="M38 62a12 12 0 0 0 12 12" stroke="#24241C" stroke-width="4.5" fill="none" stroke-linecap="round"/></svg>',
+
+    U3O8: '<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#E9DC3F"/><g fill="#1A1A12"><path d="M30 15.4a40 40 0 0 1 40 0L58 36.1a16 16 0 0 0-16 0z"/><path d="M30 15.4a40 40 0 0 1 40 0L58 36.1a16 16 0 0 0-16 0z" transform="rotate(120 50 50)"/><path d="M30 15.4a40 40 0 0 1 40 0L58 36.1a16 16 0 0 0-16 0z" transform="rotate(240 50 50)"/></g><circle cx="50" cy="50" r="10" fill="#1A1A12"/></svg>',
+
+    NDX: '<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#0A85C6"/><path d="M14 76l22-24 16 12 24-34" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="square" stroke-linejoin="miter"/><path d="M62 28h20v20" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="square"/></svg>'
+  };
+
+  /* ---------------- markets board ---------------- */
+  var rows = [
+    { a: "Solana", s: "SOL", cat: "major", side: "C", k: "240", e: "27 SEP", m: "12.84", ch: 6.2, iv: 72, oi: "4.1M" },
+    { a: "Ethereum", s: "ETH", cat: "major", side: "P", k: "3,200", e: "27 SEP", m: "96.40", ch: -3.8, iv: 54, oi: "11.9M" },
+    { a: "Bitcoin", s: "BTC", cat: "major", side: "C", k: "82,000", e: "25 OCT", m: "2,140.00", ch: 1.4, iv: 46, oi: "28.6M" },
+    { a: "Dogwifhat", s: "WIF", cat: "meme", side: "C", k: "3.50", e: "13 SEP", m: "0.284", ch: 22.7, iv: 148, oi: "740K" },
+    { a: "Pepe", s: "PEPE", cat: "meme", side: "P", k: "0.0000090", e: "13 SEP", m: "0.0000011", ch: -11.3, iv: 161, oi: "512K" },
+    { a: "Bonk", s: "BONK", cat: "meme", side: "C", k: "0.000034", e: "27 SEP", m: "0.0000042", ch: 8.9, iv: 139, oi: "388K" },
+    { a: "Gold", s: "XAU", cat: "rwa", side: "C", k: "2,600", e: "25 OCT", m: "41.20", ch: 0.6, iv: 18, oi: "9.2M" },
+    { a: "Crude oil", s: "WTI", cat: "rwa", side: "P", k: "68.00", e: "25 OCT", m: "2.86", ch: -2.1, iv: 34, oi: "3.7M" },
+    { a: "Uranium", s: "U3O8", cat: "rwa", side: "C", k: "92.00", e: "20 DEC", m: "7.44", ch: 4.4, iv: 41, oi: "1.2M" },
+    { a: "Nasdaq 100", s: "NDX", cat: "rwa", side: "C", k: "21,500", e: "20 DEC", m: "612.00", ch: 0.9, iv: 22, oi: "16.4M" }
+  ];
+
+  function paintBoard(filter) {
+    document.getElementById("boardBody").innerHTML = rows
+      .filter(function (r) { return filter === "all" || r.cat === filter; })
+      .map(function (r) {
+        var ch = (r.ch >= 0 ? "+" : "−") + Math.abs(r.ch).toFixed(1) + "%";
+        return "<tr>" +
+          '<td><div class="asset"><span class="glyph">' + (LOGOS[r.s] || r.s.slice(0, 2)) + "</span>" +
+          '<span><span class="nm">' + r.a + '</span><br><span class="sb mono">' + r.s + "</span></span></div></td>" +
+          '<td><span class="tag ' + (r.side === "C" ? "c" : "p") + '">' + (r.side === "C" ? "CALL" : "PUT") + "</span></td>" +
+          "<td>" + r.k + "</td><td>" + r.e + "</td><td>" + r.m + "</td>" +
+          '<td class="' + (r.ch >= 0 ? "pos" : "neg") + '">' + ch + "</td>" +
+          '<td><span class="iv-cell">' + r.iv + '%<span class="iv-bar"><i style="width:' + Math.min(r.iv / 1.8, 100) + '%"></i></span></span></td>' +
+          "<td>" + r.oi + "</td></tr>";
+      }).join("");
+  }
+  paintBoard("all");
+
+  document.querySelectorAll(".chip").forEach(function (c) {
+    c.addEventListener("click", function () {
+      document.querySelectorAll(".chip").forEach(function (o) { o.setAttribute("aria-pressed", "false"); });
+      c.setAttribute("aria-pressed", "true");
+      paintBoard(c.dataset.filter);
+    });
+  });
+
+  /* ---------------- ticker rail ---------------- */
+  var railHtml = rows.concat(rows.slice(0, 5)).map(function (r) {
+    return '<span class="tick ' + (r.side === "C" ? "c" : "p") + '">' +
+      '<span class="kind">' + r.side + "</span><b>" + r.s + "</b>" + r.k +
+      "<span>" + (r.ch >= 0 ? "+" : "−") + Math.abs(r.ch).toFixed(1) + "%</span></span>";
+  }).join("");
+  document.getElementById("railA").innerHTML = railHtml;
+  document.getElementById("railB").innerHTML = railHtml;
+
+  /* ---------------- spot drift ---------------- */
+  if (!reduced) {
+    setInterval(function () {
+      SPOT = Math.max(150, Math.min(280, SPOT * (1 + (Math.random() - 0.5) * 0.004)));
+      el.spot.textContent = SPOT.toFixed(2);
+      drawPayoff();
+    }, 2200);
+  }
+
+  /* ---------------- reveal on scroll ---------------- */
+  if ("IntersectionObserver" in window && !reduced) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.06 });
+    document.querySelectorAll(".rv").forEach(function (n) { io.observe(n); });
+  } else {
+    document.querySelectorAll(".rv").forEach(function (n) { n.classList.add("in"); });
+  }
+
+  /* ---------------- boot ---------------- */
+  function redrawAll() { drawPayoff(); }
+  var rt;
+  window.addEventListener("resize", function () {
+    clearTimeout(rt); rt = setTimeout(drawPayoff, 120);
+  });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawPayoff);
+  update();
+})();
+</script>

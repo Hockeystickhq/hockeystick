@@ -1,0 +1,13 @@
+@font-face{font-family:'Bricolage';src:url('fonts/bricolage800.ttf') format('truetype');font-weight:800;font-style:normal}
+@font-face{font-family:'DMMono';src:url('fonts/dmmono500.ttf') format('truetype');font-weight:500;font-style:normal}
+@font-face{font-family:'Instrument';src:url('fonts/instrument500.ttf') format('truetype');font-weight:500;font-style:normal}
+:root{
+  --paper:#EDEEE4; --paper-2:#E4E6D8; --ink:#14150F; --ink-2:#3B3D31; --dim:#6E7062;
+  --line-soft:#C7C9B8; --volt:#D8EE2E; --up:#0093B8; --down:#E0246F;
+  --pin-up:#5FE3FF; --pin-down:#FF7FB4; --pin-fg:#EDEEE4;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:#fff}
+.mono{font-family:'DMMono',monospace;font-variant-numeric:tabular-nums}
+.wm{font-family:'Bricolage',sans-serif;font-weight:800;letter-spacing:-.03em;font-variation-settings:'wght' 800,'opsz' 96}
+.sans{font-family:'Instrument',sans-serif;font-weight:500}
