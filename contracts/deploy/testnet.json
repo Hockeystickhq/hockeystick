@@ -1,0 +1,18 @@
+{
+  "network": "robinhood-testnet",
+  "chainId": 46630,
+  "rpc": "https://rpc.testnet.chain.robinhood.com",
+  "explorer": "https://explorer.testnet.chain.robinhood.com",
+  "deployedAt": "2026-08-31",
+  "contracts": {
+    "HockeystickVault": "0x2a4d14f5f7ad1cde33d9687caf732087bb2df79e",
+    "TestUSDC": "0x5f9ea3a11da65fbdf559c9f2218dd231d2a11358"
+  },
+  "markets": [
+    { "id": 0, "name": "ETH / USD",  "oracle": "0xad2eeffe19ae2df7f41981b168939657ecebe2ce", "aggregator": "0x39a2cadf465c9c5817810b09ed8fbc6e698b1682", "volatility": "0.75", "payoutCapBps": 30000 },
+    { "id": 1, "name": "BTC / USD",  "oracle": "0x8c6ca38e8101ce0133bf9ba0dbc4441a72fc5697", "aggregator": "0x0c155c8b13f3edf77058a19b3e3cc703fe492302", "volatility": "0.55", "payoutCapBps": 25000 },
+    { "id": 2, "name": "NVDA / USD", "oracle": "0x624e9d8bbc7f5e51bf85f2092dc508bb3bcb8dc0", "aggregator": "0xb5591039106bf1ceff9bdfde1019067fa11c8e6b", "volatility": "0.50", "payoutCapBps": 20000 },
+    { "id": 3, "name": "SLV / USD",  "oracle": "0x3ce68452f4859e2e35fcc46be52364766493c2ec", "aggregator": "0xa133fe815baec065dbfd82ce896bda222cc845d1", "volatility": "0.30", "payoutCapBps": 15000 }
+  ],
+  "note": "Testnet aggregators are writable stand-ins; Chainlink has not deployed feeds to this network. The production ChainlinkOracle adapter runs unchanged in front of them."
+}

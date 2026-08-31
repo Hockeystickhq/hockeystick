@@ -68,6 +68,24 @@ Equity feeds update 24/5. A market on a tokenized equity needs a staleness windo
 survives a weekend, or Monday settlement reverts on a stale price. The deploy script
 uses 26 hours for crypto and 80 hours for equities.
 
+## Deployed — Robinhood Chain testnet (46630)
+
+| Contract | Address |
+|---|---|
+| HockeystickVault | [`0x2a4d14f5...df79e`](https://explorer.testnet.chain.robinhood.com/address/0x2a4d14f5f7ad1cde33d9687caf732087bb2df79e) |
+| TestUSDC (faucet) | [`0x5f9ea3a1...11358`](https://explorer.testnet.chain.robinhood.com/address/0x5f9ea3a11da65fbdf559c9f2218dd231d2a11358) |
+
+Four markets live: ETH, BTC, NVDA, SLV. Full addresses in
+[`deploy/testnet.json`](deploy/testnet.json).
+
+Call `claim()` on TestUSDC for 100,000 tUSDC a day, then `buy()` on the vault.
+
+First live trade: 5x 7-day $2,442 ETH puts for $505.84 premium, against $12,210
+locked — exactly five contracts times the strike.
+
 ## Status
 
-Not audited. Testnet only until it is.
+Not audited. Testnet only until it is. The solvency invariant is fuzz-tested,
+not formally proven, and LPs currently carry unhedged short-option risk: there
+is no delta hedging, so a large directional move against the book is a real
+loss for the pool.
