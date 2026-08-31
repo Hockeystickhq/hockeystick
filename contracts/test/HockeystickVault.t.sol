@@ -157,9 +157,10 @@ contract HockeystickVaultTest is Test {
         vm.prank(trader);
         vault.buy(marketId, 3000e18, expiry, false, 10e18, type(uint256).max);
 
+        vm.warp(expiry - 1 hours);
         oracle.set(2500e18); // $500 in the money
         vm.warp(expiry + 1);
-        vault.settle(id);
+        vault.settle(id, oracle.latestRound());
         _assertSolvent();
 
         vm.warp(block.timestamp + vault.disputeWindow() + 1);
@@ -181,9 +182,10 @@ contract HockeystickVaultTest is Test {
         vm.prank(trader);
         (, uint256 paid) = vault.buy(marketId, 3000e18, expiry, false, 10e18, type(uint256).max);
 
+        vm.warp(expiry - 1 hours);
         oracle.set(3500e18); // put finishes out of the money
         vm.warp(expiry + 1);
-        vault.settle(id);
+        vault.settle(id, oracle.latestRound());
 
         assertEq(vault.lockedCollateral(), 0, "nothing owed, all collateral released");
         assertEq(vault.totalAssets(), poolBefore + paid, "pool keeps the entire premium");
@@ -201,9 +203,10 @@ contract HockeystickVaultTest is Test {
         vm.prank(trader);
         vault.buy(marketId, 3000e18, expiry, true, 1e18, type(uint256).max);
 
+        vm.warp(expiry - 1 hours);
         oracle.set(100_000e18); // far beyond the 2x cap
         vm.warp(expiry + 1);
-        vault.settle(id);
+        vault.settle(id, oracle.latestRound());
 
         vm.warp(block.timestamp + vault.disputeWindow() + 1);
         vm.prank(trader);
@@ -222,9 +225,10 @@ contract HockeystickVaultTest is Test {
         vm.prank(trader);
         (, uint256 paid) = vault.buy(marketId, 3000e18, expiry, true, 1e18, type(uint256).max);
 
+        vm.warp(expiry - 1 hours);
         oracle.set(1e18); // catastrophic move against the buyer
         vm.warp(expiry + 1);
-        vault.settle(id);
+        vault.settle(id, oracle.latestRound());
         vm.warp(block.timestamp + vault.disputeWindow() + 1);
         vm.prank(trader);
         vault.exercise(id);
@@ -240,9 +244,10 @@ contract HockeystickVaultTest is Test {
         vm.prank(trader);
         vault.buy(marketId, 3000e18, expiry, false, 1e18, type(uint256).max);
 
+        vm.warp(expiry - 1 hours);
         oracle.set(2000e18);
         vm.warp(expiry + 1);
-        vault.settle(id);
+        vault.settle(id, oracle.latestRound());
 
         vm.prank(trader);
         vm.expectRevert(HockeystickVault.DisputeWindowOpen.selector);
@@ -256,14 +261,20 @@ contract HockeystickVaultTest is Test {
         vm.prank(trader);
         vault.buy(marketId, 3000e18, expiry, false, 1e18, type(uint256).max);
 
+        // Hoist the round read: an external call in the argument list would be
+        // the "next call" expectRevert matches against.
+        uint80 early = oracle.latestRound();
         vm.expectRevert(HockeystickVault.SeriesNotExpired.selector);
-        vault.settle(id);
+        vault.settle(id, early);
 
+        vm.warp(expiry - 1 hours);
+        oracle.set(3000e18);
+        uint80 round = oracle.latestRound();
         vm.warp(expiry + 1);
-        vault.settle(id);
+        vault.settle(id, round);
 
         vm.expectRevert(HockeystickVault.AlreadySettled.selector);
-        vault.settle(id);
+        vault.settle(id, round);
     }
 
     function test_cannotBuyIntoASettledSeries() public {
@@ -273,11 +284,98 @@ contract HockeystickVaultTest is Test {
         vm.prank(trader);
         vault.buy(marketId, 3000e18, expiry, false, 1e18, type(uint256).max);
         vm.warp(expiry + 1);
-        vault.settle(id);
+        vault.settle(id, oracle.latestRound());
 
         vm.prank(trader);
         vm.expectRevert(); // expired, so quoting fails first
         vault.buy(marketId, 3000e18, expiry, false, 1e18, type(uint256).max);
+    }
+
+    /* ----------------------------- settlement round ---------------------------- */
+
+    function test_cannotSettleWithARoundPublishedAfterExpiry() public {
+        uint40 expiry = uint40(block.timestamp + 30 days);
+        bytes32 id = vault.seriesId(marketId, 3000e18, expiry, false);
+
+        vm.prank(trader);
+        vault.buy(marketId, 3000e18, expiry, false, 1e18, type(uint256).max);
+
+        vm.warp(expiry - 1 hours);
+        oracle.set(2500e18); // round 2, just before expiry — the legitimate one
+        uint80 atExpiry = oracle.latestRound();
+
+        vm.warp(expiry + 1 days);
+        oracle.set(1000e18); // round 3, well after expiry and far more valuable
+        uint80 afterExpiry = oracle.latestRound();
+
+        // Settling on the post-expiry round would hand the holder a price that
+        // never prevailed while the option was alive.
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                HockeystickVault.RoundAfterExpiry.selector, block.timestamp, expiry
+            )
+        );
+        vault.settle(id, afterExpiry);
+
+        vault.settle(id, atExpiry);
+        assertEq(vault.series(id).settlementPrice, 2500e18, "must settle at the expiry price");
+    }
+
+    function test_cannotCherryPickAnEarlierRound() public {
+        uint40 expiry = uint40(block.timestamp + 30 days);
+        bytes32 id = vault.seriesId(marketId, 3000e18, expiry, false);
+
+        vm.prank(trader);
+        vault.buy(marketId, 3000e18, expiry, false, 1e18, type(uint256).max);
+
+        vm.warp(block.timestamp + 10 days);
+        oracle.set(1500e18); // round 2 — deep in the money, but not the expiry price
+        uint80 stale = oracle.latestRound();
+
+        vm.warp(block.timestamp + 10 days);
+        vm.warp(expiry - 1 hours);
+        oracle.set(2900e18); // round 3 — also before expiry, and the real one
+
+        vm.warp(expiry + 1);
+
+        // Round 2 is not the boundary round: round 3 still precedes expiry.
+        vm.expectRevert();
+        vault.settle(id, stale);
+
+        vault.settle(id, oracle.latestRound());
+        assertEq(vault.series(id).settlementPrice, 2900e18, "settles at the last pre-expiry price");
+    }
+
+    function test_cannotSettleWithAMissingRound() public {
+        uint40 expiry = uint40(block.timestamp + 30 days);
+        bytes32 id = vault.seriesId(marketId, 3000e18, expiry, false);
+
+        vm.prank(trader);
+        vault.buy(marketId, 3000e18, expiry, false, 1e18, type(uint256).max);
+        vm.warp(expiry + 1);
+
+        vm.expectRevert(abi.encodeWithSelector(HockeystickVault.RoundNotFound.selector, uint80(999)));
+        vault.settle(id, 999);
+    }
+
+    function test_rejectsSettlementOnADeadFeed() public {
+        uint40 expiry = uint40(block.timestamp + 30 days);
+        bytes32 id = vault.seriesId(marketId, 3000e18, expiry, false);
+
+        vm.prank(trader);
+        vault.buy(marketId, 3000e18, expiry, false, 1e18, type(uint256).max);
+
+        // Feed publishes once, then goes silent for the whole tenor.
+        oracle.set(2500e18);
+        uint80 lastRound = oracle.latestRound();
+        uint256 lastUpdate = block.timestamp;
+
+        vm.warp(expiry + 1);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(HockeystickVault.StaleSettlementRound.selector, lastUpdate, expiry)
+        );
+        vault.settle(id, lastRound);
     }
 
     /* --------------------------------- invariant ------------------------------- */
@@ -301,11 +399,14 @@ contract HockeystickVaultTest is Test {
         }
         _assertSolvent();
 
+        // A live feed prints continuously; publish the settlement price just
+        // before expiry, which is the round settlement will bind to.
+        vm.warp(expiry - 1 hours);
         oracle.set((3000e18 * settlePct) / 100);
         vm.warp(expiry + 1);
 
         bytes32 id = vault.seriesId(marketId, strike, expiry, isCall);
-        vault.settle(id);
+        vault.settle(id, oracle.latestRound());
         _assertSolvent();
 
         vm.warp(block.timestamp + vault.disputeWindow() + 1);

@@ -106,6 +106,10 @@ contract HockeystickVault is ERC20, Ownable, ReentrancyGuard {
     error PremiumExceedsMax(uint256 premium, uint256 maxPremium);
     error NoPosition();
     error BadParam();
+    error RoundNotFound(uint80 roundId);
+    error RoundAfterExpiry(uint256 updatedAt, uint40 expiry);
+    error NotBoundaryRound(uint80 roundId, uint256 nextUpdatedAt);
+    error StaleSettlementRound(uint256 updatedAt, uint40 expiry);
 
     /* ------------------------------- construction ------------------------------ */
 
@@ -378,15 +382,42 @@ contract HockeystickVault is ERC20, Ownable, ReentrancyGuard {
 
     /* --------------------------------- settlement ------------------------------ */
 
-    /// @notice Record the expiry price. Permissionless — anyone may settle.
-    function settle(bytes32 id) external nonReentrant {
+    /// @notice Settle a series at its expiry price. Permissionless.
+    ///
+    /// @param roundId The oracle round that was current at expiry: the last
+    ///        round published at or before `expiry`. The contract verifies this
+    ///        by checking that the following round lands after expiry.
+    ///
+    /// @dev Settling against the *latest* price instead would let a holder wait
+    ///      for spot to drift in their favour before settling, turning a
+    ///      European option into a free American one at the pool's expense. The
+    ///      round must therefore straddle expiry, which pins settlement to the
+    ///      price that actually prevailed at that instant.
+    function settle(bytes32 id, uint80 roundId) external nonReentrant {
         Series storage s = _series[id];
         if (s.expiry == 0) revert SeriesUnknown();
         if (s.settled) revert AlreadySettled();
         if (block.timestamp < s.expiry) revert SeriesNotExpired();
 
         Market storage m = _markets[s.marketId];
-        (uint256 spot,) = m.oracle.price();
+
+        (uint256 spot, uint256 updatedAt) = m.oracle.priceAt(roundId);
+        if (spot == 0 || updatedAt == 0) revert RoundNotFound(roundId);
+        if (updatedAt > s.expiry) revert RoundAfterExpiry(updatedAt, s.expiry);
+
+        // The next round must fall after expiry, or an earlier round was passed
+        // in to cherry-pick a more favourable price.
+        (, uint256 nextUpdatedAt) = m.oracle.priceAt(roundId + 1);
+        if (nextUpdatedAt != 0 && nextUpdatedAt <= s.expiry) {
+            revert NotBoundaryRound(roundId, nextUpdatedAt);
+        }
+
+        // A healthy feed publishes at least once per heartbeat, so the boundary
+        // round sits close to expiry. If the feed died long before, settling on
+        // its last print would use a price the market never saw at expiry.
+        if (uint256(s.expiry) - updatedAt > m.oracle.maxAge()) {
+            revert StaleSettlementRound(updatedAt, s.expiry);
+        }
 
         s.settlementPrice = spot;
         s.settled = true;

@@ -41,6 +41,20 @@ contract ChainlinkOracle is IOracle {
     }
 
     /// @inheritdoc IOracle
+    /// @dev Returns zeros rather than reverting when the round is missing, so
+    ///      callers can probe for the boundary round around an expiry.
+    function priceAt(uint80 roundId) external view returns (uint256, uint256) {
+        try feed.getRoundData(roundId) returns (
+            uint80, int256 answer, uint256, uint256 updatedAt, uint80
+        ) {
+            if (answer <= 0 || updatedAt == 0) return (0, 0);
+            return (uint256(answer) * _scale, updatedAt);
+        } catch {
+            return (0, 0);
+        }
+    }
+
+    /// @inheritdoc IOracle
     function description() external view returns (string memory) {
         return feed.description();
     }
