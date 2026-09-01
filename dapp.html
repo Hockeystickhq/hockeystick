@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hockeystick — Trade on-chain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDEEE4; --paper-2:#E4E6D8; --surface:#F7F8F1;
+  --ink:#14150F; --ink-2:#3B3D31; --dim:#6E7062;
+  --line:#14150F; --line-soft:#C7C9B8;
+  --volt:#D8EE2E; --on-volt:#14150F;
+  --up:#0093B8; --down:#E0246F;
+  --up-wash:rgba(0,147,184,.14); --down-wash:rgba(224,36,111,.13);
+  --hard:3px 3px 0 var(--ink); --r:2px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#13140E; --paper-2:#1B1D14; --surface:#1A1C13;
+    --ink:#EDEEE4; --ink-2:#C7C9B9; --dim:#8B8D7C;
+    --line:#3A3D2E; --line-soft:#2A2C20;
+    --volt:#DFF23B; --up:#3AD6EE; --down:#FF4D93;
+    --up-wash:rgba(58,214,238,.15); --down-wash:rgba(255,77,147,.14);
+    --hard:3px 3px 0 var(--line);
+    color-scheme:dark;
+  }
+}
+*,*::before,*::after{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font:400 15px/1.5 "Instrument Sans",system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:"Bricolage Grotesque","Instrument Sans",sans-serif;font-weight:800;margin:0;letter-spacing:-.02em}
+.mono{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+button,input,select{font:inherit;color:inherit}
+
+#envbar{padding:.5rem 1rem;text-align:center;font-weight:600;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid var(--line);background:var(--volt);color:var(--on-volt)}
+#envbar.err{background:var(--down);color:#fff}
+
+header{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;padding:1rem 1.25rem;border-bottom:2px solid var(--line)}
+header .brand{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.3rem;letter-spacing:-.03em}
+header a{color:var(--dim);text-decoration:none;font-size:.85rem}
+header a:hover{color:var(--ink)}
+.spacer{flex:1}
+#acct{display:flex;gap:1.4rem;flex-wrap:wrap;font-size:.82rem;align-items:center}
+#acct div span{display:block;color:var(--dim);font-size:.7rem;text-transform:uppercase;letter-spacing:.07em}
+
+main{max-width:1400px;margin:0 auto;padding:1.25rem;display:grid;gap:1.25rem;grid-template-columns:minmax(0,1fr) 400px}
+@media (max-width:1080px){main{grid-template-columns:1fr}}
+.col{display:grid;gap:1.25rem;align-content:start}
+
+.panel{background:var(--surface);border:2px solid var(--line);border-radius:var(--r);box-shadow:var(--hard)}
+.panel > h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;padding:.7rem .9rem;border-bottom:2px solid var(--line);font-weight:700;display:flex;align-items:center;gap:.6rem}
+.panel > h2 .spacer{flex:1}
+.panel .body{padding:.9rem}
+
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:flex-end}
+label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);margin-bottom:.25rem;font-weight:600}
+input,select{background:var(--paper);border:2px solid var(--line);border-radius:var(--r);padding:.45rem .55rem;max-width:100%}
+input:focus,select:focus{outline:2px solid var(--volt);outline-offset:1px}
+input[type=number]{width:8rem}
+
+button{background:var(--paper);border:2px solid var(--line);border-radius:var(--r);padding:.45rem .8rem;cursor:pointer;font-weight:600}
+button:hover:not(:disabled){background:var(--paper-2)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.primary{background:var(--volt);color:var(--on-volt);box-shadow:var(--hard)}
+button.primary:hover:not(:disabled){transform:translate(1px,1px);box-shadow:2px 2px 0 var(--line)}
+button.sm{padding:.25rem .5rem;font-size:.78rem}
+
+.seg{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.9rem}
+.seg button{flex:1;min-width:7rem;text-align:left;padding:.55rem .6rem;font-size:.85rem}
+.seg button small{display:block;color:var(--dim);font-weight:400;font-size:.7rem;margin-top:.15rem;line-height:1.3}
+.seg button[aria-pressed=true]{background:var(--volt);color:var(--on-volt);box-shadow:var(--hard)}
+.seg button[aria-pressed=true] small{color:rgba(20,21,15,.7)}
+
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+thead th{background:var(--paper-2);border-bottom:2px solid var(--line);padding:.45rem .5rem;text-align:right;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em}
+thead th:first-child{text-align:left}
+tbody td{padding:.4rem .5rem;text-align:right;border-bottom:1px solid var(--line-soft)}
+tbody td:first-child{text-align:left}
+.tablewrap{max-height:330px;overflow:auto;border:2px solid var(--line);border-radius:var(--r)}
+
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin:.8rem 0}
+.stats div{border:2px solid var(--line);border-radius:var(--r);padding:.45rem .55rem}
+.stats span{display:block;font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);font-weight:600}
+.stats strong{font-family:"DM Mono",monospace;font-size:1rem;font-weight:500}
+.loss strong{color:var(--down)} .gain strong{color:var(--up)}
+
+.msg{padding:.6rem .7rem;border:2px solid var(--line);border-radius:var(--r);font-size:.82rem;margin-top:.7rem;word-break:break-word}
+.msg.err{background:var(--down-wash);border-color:var(--down)}
+.msg.ok{background:var(--up-wash);border-color:var(--up)}
+.hint{color:var(--dim);font-size:.78rem;line-height:1.45}
+.pill{display:inline-block;padding:.1rem .4rem;border:1px solid currentColor;border-radius:var(--r);font-size:.65rem;text-transform:uppercase;letter-spacing:.05em}
+.pill.long{color:var(--up)} .pill.short{color:var(--down)}
+#payoff{width:100%;height:170px;display:block;border:2px solid var(--line);border-radius:var(--r);background:var(--paper)}
+</style>
+</head>
+<body>
+
+<div id="envbar">Robinhood Chain testnet · test funds only, nothing here has value</div>
+
+<header>
+  <span class="brand">Hockeystick</span>
+  <a href="/">← Site</a>
+  <a href="https://github.com/Hockeystickhq/hockeystick" target="_blank" rel="noopener">GitHub ↗</a>
+  <span class="spacer"></span>
+  <div id="acct"><button class="primary" id="connect">Connect wallet</button></div>
+</header>
+
+<main>
+  <div class="col">
+    <section class="panel">
+      <h2>Market <span class="spacer"></span><span class="hint mono" id="spot"></span></h2>
+      <div class="body">
+        <div class="row" style="margin-bottom:.9rem">
+          <div>
+            <label for="market">Underlying</label>
+            <select id="market"><option>connect first</option></select>
+          </div>
+          <div>
+            <label for="strike">Strike (USD)</label>
+            <input id="strike" type="number" step="any" min="0">
+          </div>
+          <div>
+            <label for="expiry">Expiry</label>
+            <input id="expiry" type="date">
+          </div>
+          <button id="load">Load book</button>
+        </div>
+        <div class="seg">
+          <button id="tPut" aria-pressed="true">Put<small>Pays when spot ends below the strike.</small></button>
+          <button id="tCall" aria-pressed="false">Call<small>Pays when spot ends above it, up to the cap.</small></button>
+        </div>
+        <p class="hint" id="seriesNote">Pick a market, strike and expiry, then load the book.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Offers <span class="spacer"></span><span class="hint" id="bookCount"></span></h2>
+      <div class="body">
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Offer</th><th>Writer</th><th>Size</th><th>Ask / contract</th><th></th></tr></thead>
+            <tbody id="offers"><tr><td colspan="5" style="text-align:center;color:var(--dim)">No book loaded.</td></tr></tbody>
+          </table>
+        </div>
+        <p class="hint" style="margin-top:.7rem">Every offer here is fully collateralised by the person who wrote it. Buying one caps your loss at the premium you pay.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Your positions <span class="spacer"></span><button class="sm" id="refreshPos">Refresh</button></h2>
+      <div class="body">
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Series</th><th>Side</th><th>Size</th><th>Status</th><th></th></tr></thead>
+            <tbody id="positions"><tr><td colspan="5" style="text-align:center;color:var(--dim)">Connect to see positions.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="col">
+    <section class="panel">
+      <h2>Buy</h2>
+      <div class="body">
+        <canvas id="payoff" width="720" height="340"></canvas>
+        <div class="stats">
+          <div class="loss"><span>Max loss</span><strong id="mLoss">—</strong></div>
+          <div class="gain"><span>Max gain</span><strong id="mGain">—</strong></div>
+          <div><span>Break-even</span><strong id="mBe">—</strong></div>
+          <div><span>Total cost</span><strong id="mCost">—</strong></div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="buySize">Contracts</label>
+            <input id="buySize" type="number" step="any" min="0" value="1">
+          </div>
+          <button class="primary" id="buyBtn" disabled>Select an offer</button>
+        </div>
+        <div id="buyMsg"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Write an option</h2>
+      <div class="body">
+        <p class="hint" style="margin-bottom:.7rem">You post the maximum payout as collateral and keep the premium. This is how you take the other side — there is no pool.</p>
+        <div class="row">
+          <div>
+            <label for="wSize">Contracts</label>
+            <input id="wSize" type="number" step="any" min="0" value="1">
+          </div>
+          <div>
+            <label for="wAsk">Ask / contract</label>
+            <input id="wAsk" type="number" step="any" min="0" value="50">
+          </div>
+        </div>
+        <p class="hint" style="margin:.7rem 0">Collateral required: <strong class="mono" id="wLock">—</strong></p>
+        <button class="primary" id="writeBtn" disabled>Connect to write</button>
+        <div id="writeMsg"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Test funds</h2>
+      <div class="body">
+        <p class="hint" style="margin-bottom:.7rem">The faucet gives 100,000 tUSDC once a day. It is worthless test money.</p>
+        <button id="faucet" disabled>Claim 100,000 tUSDC</button>
+        <div id="faucetMsg"></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  /* ------------------------------ deployment ------------------------------ */
+
+  var CHAIN_ID = 46630;
+  var CHAIN_HEX = "0xb626";
+  var RPC = "https://rpc.testnet.chain.robinhood.com";
+  var EXPLORER = "https://explorer.testnet.chain.robinhood.com";
+  var BOOK = "0xA756f9f9CC82e23468B9b62867fEE922094D2aAB";
+  var USDC = "0x5f9ea3a11da65fbdf559c9f2218dd231d2a11358";
+
+  var BOOK_ABI = [
+    "function marketCount() view returns (uint256)",
+    "function market(uint32) view returns (tuple(address oracle,uint64 payoutCapBps,bool listed))",
+    "function seriesId(uint32,uint256,uint40,bool) pure returns (bytes32)",
+    "function series(bytes32) view returns (tuple(uint32 marketId,uint40 expiry,bool isCall,uint256 strike,uint256 openInterest,uint256 lockPerContract,uint256 lockedCollateral,uint256 settlementPrice,uint256 payoutPerContract,uint40 settledAt,bool settled))",
+    "function seriesOffers(bytes32) view returns (uint256[])",
+    "function offerCount() view returns (uint256)",
+    "function offer(uint256) view returns (tuple(address writer,bytes32 series,uint256 size,uint256 askPerContract,uint256 lockedRemaining,bool cancelled))",
+    "function lockRequired(uint32,uint256,uint40,bool,uint256) view returns (uint256)",
+    "function fillCost(uint256,uint256) view returns (uint256,uint256)",
+    "function longOf(bytes32,address) view returns (uint256)",
+    "function shortOf(bytes32,address) view returns (uint256)",
+    "function disputeWindow() view returns (uint32)",
+    "function writeAndOffer(uint32,uint256,uint40,bool,uint256,uint256) returns (uint256,bytes32)",
+    "function cancelOffer(uint256) returns (uint256)",
+    "function fill(uint256,uint256,uint256) returns (uint256)",
+    "function settle(bytes32,uint80)",
+    "function exercise(bytes32) returns (uint256)",
+    "function reclaim(bytes32) returns (uint256)"
+  ];
+  var ORACLE_ABI = [
+    "function price() view returns (uint256,uint256)",
+    "function description() view returns (string)"
+  ];
+  var ERC20_ABI = [
+    "function balanceOf(address) view returns (uint256)",
+    "function allowance(address,address) view returns (uint256)",
+    "function approve(address,uint256) returns (bool)",
+    "function claim()"
+  ];
+
+  var MAX_UINT = "0x" + "f".repeat(64);
+
+  /* -------------------------------- helpers ------------------------------- */
+
+  var $ = function (id) { return document.getElementById(id); };
+  var read = new ethers.JsonRpcProvider(RPC, CHAIN_ID, { staticNetwork: true });
+  var bookRead = new ethers.Contract(BOOK, BOOK_ABI, read);
+
+  var state = {
+    signer: null, address: null, book: null, usdc: null,
+    markets: [], marketId: 0, isCall: false,
+    strike: null, expiry: null, sid: null,
+    offers: [], selected: null, spot: null, capBps: 20000
+  };
+
+  function usd(v) { return "$" + Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 }); }
+  function fromUsdc(v) { return Number(ethers.formatUnits(v, 6)); }
+  function toUsdc(v) { return ethers.parseUnits(String(v), 6); }
+  function fromWad(v) { return Number(ethers.formatUnits(v, 18)); }
+  function toWad(v) { return ethers.parseUnits(String(v), 18); }
+  function short(a) { return a.slice(0, 6) + "…" + a.slice(-4); }
+
+  function say(el, text, kind) {
+    $(el).innerHTML = text ? '<div class="msg ' + (kind || "") + '">' + text + "</div>" : "";
+  }
+
+  // Wallet errors arrive in several shapes; surface the useful sentence, not [object Object].
+  function reason(e) {
+    if (!e) return "Unknown error.";
+    if (e.code === 4001 || e.code === "ACTION_REJECTED") return "You rejected the transaction.";
+    var r = e.reason || (e.info && e.info.error && e.info.error.message) || e.shortMessage || e.message;
+    return r ? String(r) : "Transaction failed.";
+  }
+
+  function txLink(hash) {
+    return '<a href="' + EXPLORER + "/tx/" + hash + '" target="_blank" rel="noopener">' + short(hash) + " ↗</a>";
+  }
+
+  /* ------------------------------- connecting ----------------------------- */
+
+  async function connect() {
+    if (!window.ethereum) {
+      say("buyMsg", "No wallet found. Install MetaMask or another EVM wallet, then reload.", "err");
+      return;
+    }
+    try {
+      var browser = new ethers.BrowserProvider(window.ethereum);
+      await browser.send("eth_requestAccounts", []);
+
+      var net = await browser.getNetwork();
+      if (Number(net.chainId) !== CHAIN_ID) await switchChain();
+
+      browser = new ethers.BrowserProvider(window.ethereum);
+      state.signer = await browser.getSigner();
+      state.address = await state.signer.getAddress();
+      state.book = new ethers.Contract(BOOK, BOOK_ABI, state.signer);
+      state.usdc = new ethers.Contract(USDC, ERC20_ABI, state.signer);
+
+      $("faucet").disabled = false;
+      $("writeBtn").disabled = false;
+      $("writeBtn").textContent = "Write and post offer";
+      await refreshAccount();
+      await loadPositions();
+    } catch (e) {
+      say("buyMsg", reason(e), "err");
+    }
+  }
+
+  async function switchChain() {
+    try {
+      await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: CHAIN_HEX }] });
+    } catch (e) {
+      // 4902 = chain unknown to the wallet, so offer to add it.
+      if (e.code === 4902 || (e.data && e.data.originalError && e.data.originalError.code === 4902)) {
+        await window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [{
+            chainId: CHAIN_HEX,
+            chainName: "Robinhood Chain testnet",
+            nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+            rpcUrls: [RPC],
+            blockExplorerUrls: [EXPLORER]
+          }]
+        });
+      } else throw e;
+    }
+  }
+
+  async function refreshAccount() {
+    var bal = await new ethers.Contract(USDC, ERC20_ABI, read).balanceOf(state.address);
+    var gas = await read.getBalance(state.address);
+    $("acct").innerHTML =
+      '<div><span>Wallet</span><a class="mono" href="' + EXPLORER + "/address/" + state.address +
+        '" target="_blank" rel="noopener">' + short(state.address) + "</a></div>" +
+      '<div><span>tUSDC</span><b class="mono">' + fromUsdc(bal).toLocaleString() + "</b></div>" +
+      '<div><span>Gas</span><b class="mono">' + Number(ethers.formatEther(gas)).toFixed(4) + "</b></div>";
+  }
+
+  /* -------------------------------- markets ------------------------------- */
+
+  async function loadMarkets() {
+    try {
+      var n = Number(await bookRead.marketCount());
+      var out = [];
+      for (var i = 0; i < n; i++) {
+        var m = await bookRead.market(i);
+        var oracle = new ethers.Contract(m.oracle, ORACLE_ABI, read);
+        var desc = await oracle.description();
+        out.push({ id: i, oracle: m.oracle, capBps: Number(m.payoutCapBps), name: desc });
+      }
+      state.markets = out;
+      $("market").innerHTML = out.map(function (m) {
+        return '<option value="' + m.id + '">' + m.name + "</option>";
+      }).join("");
+      await onMarketChange();
+    } catch (e) {
+      $("envbar").className = "err";
+      $("envbar").textContent = "Cannot reach Robinhood Chain testnet — " + reason(e);
+    }
+  }
+
+  async function onMarketChange() {
+    var m = state.markets[Number($("market").value) || 0];
+    if (!m) return;
+    state.marketId = m.id;
+    state.capBps = m.capBps;
+    try {
+      var oracle = new ethers.Contract(m.oracle, ORACLE_ABI, read);
+      var p = await oracle.price();
+      state.spot = fromWad(p[0]);
+      $("spot").textContent = m.name + "  " + usd(state.spot);
+      if (!$("strike").value) $("strike").value = Math.round(state.spot);
+    } catch (e) {
+      $("spot").textContent = "price unavailable";
+    }
+    updateWriteLock();
+  }
+
+  /* --------------------------------- book --------------------------------- */
+
+  function readSeriesInputs() {
+    var strike = Number($("strike").value);
+    var date = $("expiry").value;
+    if (!strike || strike <= 0) throw new Error("Enter a strike above zero.");
+    if (!date) throw new Error("Pick an expiry date.");
+    // Expire at 08:00 UTC on the chosen day, so every series in a day matches.
+    var expiry = Math.floor(new Date(date + "T08:00:00Z").getTime() / 1000);
+    if (expiry <= Math.floor(Date.now() / 1000)) throw new Error("Expiry must be in the future.");
+    return { strike: strike, expiry: expiry };
+  }
+
+  async function loadBook() {
+    try {
+      var inp = readSeriesInputs();
+      state.strike = inp.strike;
+      state.expiry = inp.expiry;
+      state.sid = await bookRead.seriesId(state.marketId, toWad(inp.strike), inp.expiry, state.isCall);
+
+      var ids = await bookRead.seriesOffers(state.sid);
+      var rows = [];
+      state.offers = [];
+      for (var i = 0; i < ids.length; i++) {
+        var o = await bookRead.offer(ids[i]);
+        if (o.cancelled || o.size === 0n) continue;
+        state.offers.push({ id: Number(ids[i]), writer: o.writer, size: o.size, ask: o.askPerContract });
+      }
+      state.offers.sort(function (a, b) { return a.ask < b.ask ? -1 : a.ask > b.ask ? 1 : 0; });
+
+      for (var j = 0; j < state.offers.length; j++) {
+        var of = state.offers[j];
+        var mine = state.address && of.writer.toLowerCase() === state.address.toLowerCase();
+        rows.push(
+          "<tr><td class=mono>#" + of.id + "</td>" +
+          "<td class=mono>" + short(of.writer) + (mine ? " (you)" : "") + "</td>" +
+          "<td class=mono>" + fromWad(of.size) + "</td>" +
+          "<td class=mono>" + usd(fromUsdc(of.ask)) + "</td>" +
+          "<td>" + (mine
+            ? '<button class="sm" data-cancel="' + of.id + '">Cancel</button>'
+            : '<button class="sm" data-pick="' + of.id + '">Select</button>') + "</td></tr>"
+        );
+      }
+
+      $("offers").innerHTML = rows.length
+        ? rows.join("")
+        : '<tr><td colspan="5" style="text-align:center;color:var(--dim)">No offers on this series yet — write one.</td></tr>';
+      $("bookCount").textContent = state.offers.length + " live";
+      $("seriesNote").innerHTML = "Series <span class=mono>" + short(state.sid) + "</span> · " +
+        (state.isCall ? "call" : "put") + " · strike " + usd(inp.strike) +
+        " · expires " + new Date(inp.expiry * 1000).toISOString().slice(0, 10);
+
+      state.selected = null;
+      $("buyBtn").disabled = true;
+      $("buyBtn").textContent = "Select an offer";
+      updateWriteLock();
+      drawPayoff();
+    } catch (e) {
+      say("buyMsg", reason(e), "err");
+    }
+  }
+
+  /* --------------------------------- buying -------------------------------- */
+
+  async function pick(id) {
+    var o = null;
+    for (var i = 0; i < state.offers.length; i++) if (state.offers[i].id === id) o = state.offers[i];
+    if (!o) return;
+    state.selected = o;
+    $("buyBtn").disabled = false;
+    $("buyBtn").textContent = "Buy from offer #" + o.id;
+    updateTicket();
+  }
+
+  function updateTicket() {
+    var o = state.selected;
+    if (!o) return;
+    var size = Number($("buySize").value) || 0;
+    var ask = fromUsdc(o.ask);
+    var cost = ask * size * 1.01; // 100bps protocol fee
+    var cap = state.strike * state.capBps / 10000;
+
+    $("mLoss").textContent = usd(cost);
+    $("mGain").textContent = state.isCall
+      ? usd((cap - state.strike) * size - cost)
+      : usd(state.strike * size - cost);
+    $("mBe").textContent = usd(state.isCall ? state.strike + ask * 1.01 : state.strike - ask * 1.01);
+    $("mCost").textContent = usd(cost);
+    drawPayoff();
+  }
+
+  async function buy() {
+    var o = state.selected;
+    if (!o) return;
+    if (!state.signer) { await connect(); if (!state.signer) return; }
+
+    var btn = $("buyBtn");
+    btn.disabled = true;
+    try {
+      var size = toWad($("buySize").value || "1");
+      if (size > o.size) throw new Error("Offer only has " + fromWad(o.size) + " contracts.");
+
+      var cost = await bookRead.fillCost(o.id, size);
+      var total = cost[0] + cost[1];
+
+      say("buyMsg", "Checking allowance…", "");
+      await ensureAllowance(total);
+
+      say("buyMsg", "Confirm the purchase in your wallet…", "");
+      // 1% headroom on the slippage bound, since the fee can round up.
+      var tx = await state.book.fill(o.id, size, total + total / 100n);
+      say("buyMsg", "Sent " + txLink(tx.hash) + " — waiting…", "");
+      await tx.wait();
+
+      say("buyMsg", "Bought " + fromWad(size) + " contracts for " + usd(fromUsdc(total)) +
+        ". " + txLink(tx.hash), "ok");
+      await refreshAccount();
+      await loadBook();
+      await loadPositions();
+    } catch (e) {
+      say("buyMsg", reason(e), "err");
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function ensureAllowance(needed) {
+    var current = await state.usdc.allowance(state.address, BOOK);
+    if (current >= needed) return;
+    var tx = await state.usdc.approve(BOOK, MAX_UINT);
+    await tx.wait();
+  }
+
+  /* --------------------------------- writing ------------------------------- */
+
+  async function updateWriteLock() {
+    try {
+      if (!state.strike || !state.expiry) { $("wLock").textContent = "—"; return; }
+      var size = toWad($("wSize").value || "1");
+      var lock = await bookRead.lockRequired(state.marketId, toWad(state.strike), state.expiry, state.isCall, size);
+      $("wLock").textContent = usd(fromUsdc(lock)) + " tUSDC";
+    } catch (e) {
+      $("wLock").textContent = "—";
+    }
+  }
+
+  async function write() {
+    if (!state.signer) { await connect(); if (!state.signer) return; }
+    var btn = $("writeBtn");
+    btn.disabled = true;
+    try {
+      var inp = readSeriesInputs();
+      var size = toWad($("wSize").value || "1");
+      var ask = toUsdc($("wAsk").value || "0");
+      if (ask === 0n) throw new Error("Set an ask above zero.");
+
+      var lock = await bookRead.lockRequired(state.marketId, toWad(inp.strike), inp.expiry, state.isCall, size);
+
+      say("writeMsg", "Approving " + usd(fromUsdc(lock)) + " of collateral…", "");
+      await ensureAllowance(lock);
+
+      say("writeMsg", "Confirm in your wallet — this locks " + usd(fromUsdc(lock)) + " until expiry.", "");
+      var tx = await state.book.writeAndOffer(
+        state.marketId, toWad(inp.strike), inp.expiry, state.isCall, size, ask
+      );
+      say("writeMsg", "Sent " + txLink(tx.hash) + " — waiting…", "");
+      await tx.wait();
+
+      say("writeMsg", "Offer posted. " + usd(fromUsdc(lock)) + " locked, yours back at expiry minus any payout. " +
+        txLink(tx.hash), "ok");
+      await refreshAccount();
+      await loadBook();
+      await loadPositions();
+    } catch (e) {
+      say("writeMsg", reason(e), "err");
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  /* -------------------------------- positions ------------------------------ */
+
+  // There is no per-user index on chain, so walk every offer, collect the
+  // distinct series, and ask the contract what this address holds in each.
+  async function loadPositions() {
+    if (!state.address) return;
+    $("positions").innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--dim)">Loading…</td></tr>';
+    try {
+      var n = Number(await bookRead.offerCount());
+      var seen = {};
+      for (var i = 0; i < n; i++) {
+        var o = await bookRead.offer(i);
+        seen[o.series] = true;
+      }
+
+      var rows = [];
+      var now = Math.floor(Date.now() / 1000);
+      var window_ = Number(await bookRead.disputeWindow());
+
+      for (var sid in seen) {
+        var lng = await bookRead.longOf(sid, state.address);
+        var shrt = await bookRead.shortOf(sid, state.address);
+        if (lng === 0n && shrt === 0n) continue;
+
+        var s = await bookRead.series(sid);
+        var label = (state.markets[Number(s.marketId)] || {}).name || ("market " + s.marketId);
+        var desc = label + " " + (s.isCall ? "C" : "P") + " " + usd(fromWad(s.strike)) +
+          " · " + new Date(Number(s.expiry) * 1000).toISOString().slice(0, 10);
+
+        var status, action = "";
+        if (!s.settled) {
+          if (now < Number(s.expiry)) {
+            status = "open";
+          } else {
+            status = "expired, needs settling";
+            action = '<button class="sm" data-settle="' + sid + '">Settle</button>';
+          }
+        } else if (now < Number(s.settledAt) + window_) {
+          status = "settled, dispute window";
+        } else {
+          status = "settled @ " + usd(fromWad(s.settlementPrice));
+          action = lng > 0n
+            ? '<button class="sm" data-exercise="' + sid + '">Exercise</button>'
+            : '<button class="sm" data-reclaim="' + sid + '">Reclaim</button>';
+        }
+
+        if (lng > 0n) {
+          rows.push("<tr><td>" + desc + '</td><td><span class="pill long">long</span></td><td class=mono>' +
+            fromWad(lng) + "</td><td>" + status + "</td><td>" + action + "</td></tr>");
+        }
+        if (shrt > 0n) {
+          rows.push("<tr><td>" + desc + '</td><td><span class="pill short">short</span></td><td class=mono>' +
+            fromWad(shrt) + "</td><td>" + status + "</td><td>" +
+            (lng > 0n ? "" : action) + "</td></tr>");
+        }
+      }
+
+      $("positions").innerHTML = rows.length
+        ? rows.join("")
+        : '<tr><td colspan="5" style="text-align:center;color:var(--dim)">No positions yet.</td></tr>';
+    } catch (e) {
+      $("positions").innerHTML = '<tr><td colspan="5" style="color:var(--down)">' + reason(e) + "</td></tr>";
+    }
+  }
+
+  /* ------------------------------ claim actions ---------------------------- */
+
+  async function runTx(fn, msgEl, label) {
+    try {
+      say(msgEl, "Confirm in your wallet…", "");
+      var tx = await fn();
+      say(msgEl, "Sent " + txLink(tx.hash) + " — waiting…", "");
+      await tx.wait();
+      say(msgEl, label + " " + txLink(tx.hash), "ok");
+      await refreshAccount();
+      await loadPositions();
+    } catch (e) {
+      say(msgEl, reason(e), "err");
+    }
+  }
+
+  /* --------------------------------- payoff -------------------------------- */
+
+  function drawPayoff() {
+    var c = $("payoff"), ctx = c.getContext("2d");
+    var W = c.width, H = c.height;
+    ctx.clearRect(0, 0, W, H);
+    if (!state.strike) return;
+
+    var css = getComputedStyle(document.documentElement);
+    var ink = css.getPropertyValue("--ink").trim() || "#14150F";
+    var volt = css.getPropertyValue("--volt").trim() || "#D8EE2E";
+    var soft = css.getPropertyValue("--line-soft").trim() || "#C7C9B8";
+
+    var k = state.strike;
+    var prem = state.selected ? fromUsdc(state.selected.ask) : k * 0.02;
+    var cap = k * state.capBps / 10000;
+    var lo = Math.max(0, k * 0.5), hi = state.isCall ? cap * 1.05 : k * 1.5;
+
+    var pnl = function (spot) {
+      var intrinsic = state.isCall
+        ? Math.max(0, Math.min(spot, cap) - k)
+        : Math.max(0, k - spot);
+      return intrinsic - prem;
+    };
+
+    var lows = pnl(lo), highs = pnl(hi);
+    var yMin = Math.min(lows, highs, -prem) * 1.2;
+    var yMax = Math.max(lows, highs, prem) * 1.2 || 1;
+
+    var X = function (s) { return ((s - lo) / (hi - lo)) * (W - 40) + 30; };
+    var Y = function (v) { return H - 20 - ((v - yMin) / (yMax - yMin)) * (H - 40); };
+
+    ctx.strokeStyle = soft; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(20, Y(0)); ctx.lineTo(W - 10, Y(0)); ctx.stroke();
+
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath(); ctx.moveTo(X(k), 10); ctx.lineTo(X(k), H - 10); ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.strokeStyle = volt; ctx.lineWidth = 6; ctx.lineJoin = "round";
+    ctx.beginPath();
+    for (var i = 0; i <= 160; i++) {
+      var s = lo + (hi - lo) * (i / 160);
+      if (i === 0) ctx.moveTo(X(s), Y(pnl(s))); else ctx.lineTo(X(s), Y(pnl(s)));
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = ink;
+    ctx.font = '11px "DM Mono", monospace';
+    ctx.fillText("strike " + Math.round(k), Math.min(X(k) + 6, W - 90), 20);
+  }
+
+  /* --------------------------------- wiring -------------------------------- */
+
+  $("connect").addEventListener("click", connect);
+  $("market").addEventListener("change", onMarketChange);
+  $("load").addEventListener("click", loadBook);
+  $("buyBtn").addEventListener("click", buy);
+  $("writeBtn").addEventListener("click", write);
+  $("refreshPos").addEventListener("click", loadPositions);
+  $("buySize").addEventListener("input", updateTicket);
+  $("wSize").addEventListener("input", updateWriteLock);
+  ["strike", "expiry"].forEach(function (id) {
+    $(id).addEventListener("input", updateWriteLock);
+  });
+
+  $("faucet").addEventListener("click", function () {
+    runTx(function () { return state.usdc.claim(); }, "faucetMsg", "Claimed 100,000 tUSDC.");
+  });
+
+  function setType(isCall) {
+    state.isCall = isCall;
+    $("tCall").setAttribute("aria-pressed", String(isCall));
+    $("tPut").setAttribute("aria-pressed", String(!isCall));
+    updateWriteLock();
+    drawPayoff();
+  }
+  $("tCall").addEventListener("click", function () { setType(true); });
+  $("tPut").addEventListener("click", function () { setType(false); });
+
+  // Table buttons are rendered from data, so delegate rather than rebind.
+  document.addEventListener("click", function (e) {
+    var t = e.target;
+    if (!t || t.tagName !== "BUTTON") return;
+    if (t.dataset.pick) pick(Number(t.dataset.pick));
+    else if (t.dataset.cancel) runTx(function () { return state.book.cancelOffer(Number(t.dataset.cancel)); }, "writeMsg", "Offer cancelled, collateral returned.").then(loadBook);
+    else if (t.dataset.exercise) runTx(function () { return state.book.exercise(t.dataset.exercise); }, "buyMsg", "Exercised.");
+    else if (t.dataset.reclaim) runTx(function () { return state.book.reclaim(t.dataset.reclaim); }, "writeMsg", "Collateral reclaimed.");
+    else if (t.dataset.settle) settle(t.dataset.settle);
+  });
+
+  // Settlement needs the last oracle round at or before expiry. Walk back from
+  // the latest round until one lands before expiry — the contract rejects any
+  // round that is not the true boundary, so a wrong guess simply reverts.
+  async function settle(sid) {
+    say("buyMsg", "Finding the settlement round…", "");
+    try {
+      var s = await bookRead.series(sid);
+      var m = await bookRead.market(s.marketId);
+      var agg = new ethers.Contract(m.oracle, [
+        "function priceAt(uint80) view returns (uint256,uint256)"
+      ], read);
+
+      var found = null;
+      for (var r = 1; r < 4000; r++) {
+        var p = await agg.priceAt(r);
+        if (p[1] === 0n) break;
+        if (p[1] <= s.expiry) found = r; else break;
+      }
+      if (found === null) throw new Error("No oracle round found before expiry.");
+
+      await runTx(function () { return state.book.settle(sid, found); }, "buyMsg", "Settled.");
+    } catch (e) {
+      say("buyMsg", reason(e), "err");
+    }
+  }
+
+  // Default the expiry field to a week out, the most common tenor.
+  var d = new Date(Date.now() + 7 * 864e5);
+  $("expiry").value = d.toISOString().slice(0, 10);
+
+  loadMarkets();
+
+  if (window.ethereum) {
+    window.ethereum.on("accountsChanged", function () { location.reload(); });
+    window.ethereum.on("chainChanged", function () { location.reload(); });
+  }
+}());
+</script>
+</body>
+</html>

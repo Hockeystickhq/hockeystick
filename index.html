@@ -1,4 +1,7 @@
 <title>Hockeystick</title>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@HockeystickHq">
+<meta name="twitter:creator" content="@HockeystickHq">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
@@ -285,6 +288,118 @@ a{color:inherit}
   padding:0;
 }
 .icon-btn:hover{background:var(--volt);color:var(--on-volt)}
+a.icon-btn{text-decoration:none}
+.foot-social{display:flex;align-items:center;gap:.55rem;margin-top:1.1rem}
+.foot-social a{
+  display:inline-grid;place-items:center;
+  width:34px;height:34px;
+  border:1.5px solid var(--line);border-radius:var(--r);
+  background:var(--surface);color:var(--ink);text-decoration:none;
+  transition:background .15s,color .15s;
+}
+.foot-social a:hover{background:var(--volt);color:var(--on-volt)}
+
+/* ---- token contract address ---- */
+.ca-card{
+  border:1.5px solid var(--line);
+  background:var(--surface);
+  box-shadow:var(--hard-lg);
+  padding:1.6rem 1.7rem;
+  margin-bottom:2.5rem;
+}
+.ca-top{
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:.6rem 1rem;
+  margin-bottom:1.1rem;
+}
+.ca-sym{
+  font-family:"Bricolage Grotesque",sans-serif;
+  font-weight:800;font-size:1.6rem;letter-spacing:-.03em;
+}
+.ca-name{color:var(--dim);font-size:.95rem}
+.ca-net{
+  margin-left:auto;
+  font-family:"DM Mono",monospace;
+  font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
+  background:var(--volt);color:var(--on-volt);
+  border:1.5px solid var(--line);padding:.2rem .5rem;
+}
+.ca-label{
+  font-family:"DM Mono",monospace;
+  font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:.45rem;
+}
+.ca-row{display:flex;flex-wrap:wrap;gap:.6rem;align-items:stretch}
+.ca-addr{
+  flex:1 1 22rem;
+  font-family:"DM Mono",monospace;
+  font-size:clamp(.72rem,2.1vw,.95rem);
+  background:var(--paper-2);
+  border:1.5px solid var(--line);
+  padding:.7rem .85rem;
+  display:flex;align-items:center;
+  word-break:break-all;
+  color:var(--ink);
+}
+.ca-copy{
+  font-family:"Instrument Sans",sans-serif;font-weight:600;font-size:.82rem;
+  border:1.5px solid var(--line);
+  background:var(--volt);color:var(--on-volt);
+  padding:.7rem 1.1rem;cursor:pointer;
+  box-shadow:2px 2px 0 var(--line);
+  transition:transform .12s ease,box-shadow .12s ease;
+  white-space:nowrap;
+}
+.ca-copy:hover{transform:translate(2px,2px);box-shadow:0 0 0 var(--line)}
+.ca-copy.done{background:var(--up);color:#fff}
+.ca-meta{
+  display:flex;flex-wrap:wrap;gap:1.4rem 2.4rem;
+  margin-top:1.3rem;padding-top:1.2rem;
+  border-top:1.5px solid var(--line-soft);
+}
+.ca-meta div span{
+  display:block;
+  font-family:"DM Mono",monospace;
+  font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+  margin-bottom:.25rem;
+}
+.ca-meta div b{font-size:.95rem}
+@media (prefers-reduced-motion: reduce){.ca-copy,.ca-copy:hover{transform:none;transition:none}}
+
+/* ---- deployed contracts ---- */
+.addr-note{
+  font-family:"DM Mono",monospace;
+  font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:1.4rem;
+}
+.addr-table{
+  border:1.5px solid var(--line);
+  background:var(--surface);
+  box-shadow:var(--hard);
+  overflow-x:auto;
+}
+.addr-table table{border-collapse:collapse;width:100%;min-width:640px}
+.addr-table th,.addr-table td{
+  text-align:left;
+  padding:.85rem 1.1rem;
+  border-bottom:1.5px solid var(--line-soft);
+}
+.addr-table tr:last-child td{border-bottom:0}
+.addr-table th{
+  font-family:"DM Mono",monospace;
+  font-weight:500;font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--dim);
+  border-bottom:1.5px solid var(--line);
+}
+.addr-table td.name{font-weight:600;white-space:nowrap}
+.addr-table td.addr{width:99%}
+.addr-table a.mono,.addr-table span.mono{
+  font-family:"DM Mono",monospace;
+  font-size:.82rem;
+  color:var(--ink-2);
+  word-break:break-all;
+}
+.addr-table a.mono:hover{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.addr-foot{font-size:.82rem;color:var(--dim);margin-top:1.2rem;max-width:70ch;line-height:1.65}
 
 /* ---- hero ---- */
 .hero{
@@ -820,13 +935,26 @@ details p{padding:0 0 1.35rem;color:var(--ink-2);max-width:66ch;font-size:.95rem
       <a href="#how">How it works</a>
       <a href="#strategies">Strategies</a>
       <a href="#earn">Earn</a>
+      <a href="#contracts">Contracts</a>
     </nav>
+    <a class="icon-btn" href="https://github.com/Hockeystickhq/hockeystick" target="_blank" rel="noopener"
+       aria-label="Hockeystick on GitHub" title="Hockeystick on GitHub">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
+      </svg>
+    </a>
+    <a class="icon-btn" href="https://x.com/HockeystickHq" target="_blank" rel="noopener"
+       aria-label="Hockeystick on X" title="Hockeystick on X">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.45-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77Z"/>
+      </svg>
+    </a>
     <button class="icon-btn" id="themeBtn" aria-label="Switch colour theme" title="Switch colour theme">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" aria-hidden="true">
         <path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/>
       </svg>
     </button>
-    <a class="btn btn-volt btn-sm" href="#cta">Open app</a>
+    <a class="btn btn-volt btn-sm" href="/dapp">Open app</a>
   </div>
 </header>
 
@@ -838,7 +966,7 @@ details p{padding:0 0 1.35rem;color:var(--ink-2);max-width:66ch;font-size:.95rem
       <h1>Bet the <span class="swap">shape</span><br>of the move.<br><em>Not the size</em></h1>
       <p class="hero-sub">Buy a call or a put on any token, index or commodity. Your loss is capped at the premium you paid &mdash; the moment you click. No margin call, no liquidation price, no funding bleeding you out at 4am.</p>
       <div class="hero-cta">
-        <a class="btn btn-volt" href="#cta">Start trading</a>
+        <a class="btn btn-volt" href="/dapp">Start trading</a>
         <a class="btn" href="#pricer">Price a contract &rarr;</a>
       </div>
       <div class="hero-facts">
@@ -1095,13 +1223,94 @@ details p{padding:0 0 1.35rem;color:var(--ink-2);max-width:66ch;font-size:.95rem
   </div>
 </section>
 
+<!-- ============ CONTRACTS ============ -->
+<section class="band band-pad" id="contracts">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <h2>The token and the code</h2>
+      <p>$HS is live on Robinhood Chain mainnet. The protocol contracts are on the testnet while they are finished. Every address here is verifiable on the explorer right now.</p>
+    </div>
+
+    <div class="ca-card rv">
+      <div class="ca-top">
+        <span class="ca-sym">$HS</span>
+        <span class="ca-name">Hockey stick</span>
+        <span class="ca-net">Robinhood Chain · 4663</span>
+      </div>
+      <p class="ca-label">Contract address</p>
+      <div class="ca-row">
+        <div class="ca-addr" id="caAddr">0xBB5260c0ec543a610286901333B2Be8926D415Dc</div>
+        <button class="ca-copy" id="caCopy" type="button" data-ca="0xBB5260c0ec543a610286901333B2Be8926D415Dc">Copy</button>
+        <a class="ca-copy" href="https://robinhoodchain.blockscout.com/address/0xBB5260c0ec543a610286901333B2Be8926D415Dc" target="_blank" rel="noopener"
+           style="display:flex;align-items:center;text-decoration:none">Explorer ↗</a>
+      </div>
+      <div class="ca-meta">
+        <div><span>Symbol</span><b>HS</b></div>
+        <div><span>Decimals</span><b>18</b></div>
+        <div><span>Total supply</span><b>1,000,000,000</b></div>
+        <div><span>Network</span><b>Robinhood Chain mainnet</b></div>
+      </div>
+    </div>
+
+    <p class="addr-note rv" style="margin-top:2.5rem">Protocol contracts — testnet</p>
+    <div class="rv">
+      <p class="addr-note">robinhood-testnet · chain id 46630</p>
+      <div class="addr-table">
+        <table>
+          <thead>
+            <tr><th>Contract</th><th>Address</th><th>Role</th></tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td class="name">HockeystickBook</td>
+            <td class="addr"><a class="mono" href="https://explorer.testnet.chain.robinhood.com/address/0xA756f9f9CC82e23468B9b62867fEE922094D2aAB" target="_blank" rel="noopener" title="0xA756f9f9CC82e23468B9b62867fEE922094D2aAB">0xA756f9f9CC82e23468B9b62867fEE922094D2aAB</a></td>
+            <td class="name">order book</td>
+          </tr>
+          <tr>
+            <td class="name">HockeystickVault</td>
+            <td class="addr"><a class="mono" href="https://explorer.testnet.chain.robinhood.com/address/0x2a4d14f5f7ad1cde33d9687caf732087bb2df79e" target="_blank" rel="noopener" title="0x2a4d14f5f7ad1cde33d9687caf732087bb2df79e">0x2a4d14f5f7ad1cde33d9687caf732087bb2df79e</a></td>
+            <td class="name">core</td>
+          </tr>
+          <tr>
+            <td class="name">TestUSDC</td>
+            <td class="addr"><a class="mono" href="https://explorer.testnet.chain.robinhood.com/address/0x5f9ea3a11da65fbdf559c9f2218dd231d2a11358" target="_blank" rel="noopener" title="0x5f9ea3a11da65fbdf559c9f2218dd231d2a11358">0x5f9ea3a11da65fbdf559c9f2218dd231d2a11358</a></td>
+            <td class="name">faucet</td>
+          </tr>
+          <tr>
+            <td class="name">ETH / USD oracle</td>
+            <td class="addr"><a class="mono" href="https://explorer.testnet.chain.robinhood.com/address/0xad2eeffe19ae2df7f41981b168939657ecebe2ce" target="_blank" rel="noopener" title="0xad2eeffe19ae2df7f41981b168939657ecebe2ce">0xad2eeffe19ae2df7f41981b168939657ecebe2ce</a></td>
+            <td class="name">market 0</td>
+          </tr>
+          <tr>
+            <td class="name">BTC / USD oracle</td>
+            <td class="addr"><a class="mono" href="https://explorer.testnet.chain.robinhood.com/address/0x8c6ca38e8101ce0133bf9ba0dbc4441a72fc5697" target="_blank" rel="noopener" title="0x8c6ca38e8101ce0133bf9ba0dbc4441a72fc5697">0x8c6ca38e8101ce0133bf9ba0dbc4441a72fc5697</a></td>
+            <td class="name">market 1</td>
+          </tr>
+          <tr>
+            <td class="name">NVDA / USD oracle</td>
+            <td class="addr"><a class="mono" href="https://explorer.testnet.chain.robinhood.com/address/0x624e9d8bbc7f5e51bf85f2092dc508bb3bcb8dc0" target="_blank" rel="noopener" title="0x624e9d8bbc7f5e51bf85f2092dc508bb3bcb8dc0">0x624e9d8bbc7f5e51bf85f2092dc508bb3bcb8dc0</a></td>
+            <td class="name">market 2</td>
+          </tr>
+          <tr>
+            <td class="name">SLV / USD oracle</td>
+            <td class="addr"><a class="mono" href="https://explorer.testnet.chain.robinhood.com/address/0x3ce68452f4859e2e35fcc46be52364766493c2ec" target="_blank" rel="noopener" title="0x3ce68452f4859e2e35fcc46be52364766493c2ec">0x3ce68452f4859e2e35fcc46be52364766493c2ec</a></td>
+            <td class="name">market 3</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="addr-foot"><strong>Two ways to trade the same options.</strong> The <em>book</em> is peer-to-peer: a writer posts collateral and an ask, a buyer fills it, and the protocol never takes a side. The <em>vault</em> is pooled: it always quotes every strike, with LPs on the other side. Both settle identically against the same oracles. <strong>Testnet only, and not audited.</strong> Balances here carry no value: claim tUSDC from the faucet to try it. Testnet aggregators are writable stand-ins; Chainlink has not deployed feeds to this network. The production ChainlinkOracle adapter runs unchanged in front of them. Full deployment record, including aggregators and volatility parameters, is in <a href="https://github.com/Hockeystickhq/hockeystick/blob/main/contracts/deploy/testnet.json" target="_blank" rel="noopener">contracts/deploy/testnet.json</a>.</p>
+    </div>
+  </div>
+</section>
+
 <!-- ============ CTA ============ -->
 <section class="cta" id="cta">
   <div class="wrap">
     <h2>Know exactly<br>what you can lose</h2>
     <p>Connect a wallet, pick a strike, see your maximum loss on screen before you sign. That's the whole pitch.</p>
     <div class="btns">
-      <a class="btn btn-ink" href="#top">Launch the app</a>
+      <a class="btn btn-ink" href="/dapp">Launch the app</a>
       <a class="btn" href="#pricer">Play with the pricer</a>
     </div>
   </div>
@@ -1120,6 +1329,18 @@ details p{padding:0 0 1.35rem;color:var(--ink-2);max-width:66ch;font-size:.95rem
           Hockeystick
         </a>
         <p class="blurb">On-chain options with a capped downside. Built for traders who would rather define their risk than manage it.</p>
+        <div class="foot-social">
+          <a href="https://x.com/HockeystickHq" target="_blank" rel="noopener" aria-label="Hockeystick on X" title="@HockeystickHq on X">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.45-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77Z"/>
+            </svg>
+          </a>
+          <a href="https://github.com/Hockeystickhq/hockeystick" target="_blank" rel="noopener" aria-label="Hockeystick on GitHub" title="Hockeystick on GitHub">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
+            </svg>
+          </a>
+        </div>
       </div>
       <div>
         <h4>Trade</h4>
@@ -1134,7 +1355,9 @@ details p{padding:0 0 1.35rem;color:var(--ink-2);max-width:66ch;font-size:.95rem
         <h4>Build</h4>
         <ul>
           <li><a href="#how">Protocol docs</a></li>
-          <li><a href="#how">Contracts</a></li>
+          <li><a href="#contracts">Contracts</a></li>
+          <li><a href="#contracts">$HS token</a></li>
+          <li><a href="https://github.com/Hockeystickhq/hockeystick" target="_blank" rel="noopener">Source on GitHub</a></li>
           <li><a href="#how">Audits</a></li>
           <li><a href="#how">Status</a></li>
         </ul>
@@ -1146,12 +1369,43 @@ details p{padding:0 0 1.35rem;color:var(--ink-2);max-width:66ch;font-size:.95rem
           <li><a href="#top">Careers</a></li>
           <li><a href="#top">Terms</a></li>
           <li><a href="#top">Risk policy</a></li>
+          <li><a href="https://x.com/HockeystickHq" target="_blank" rel="noopener">X&nbsp;/&nbsp;@HockeystickHq</a></li>
         </ul>
       </div>
     </div>
     <p class="disclaim"><strong>Hockeystick is a concept design.</strong> Nothing here is a live product, an offer, or financial advice. All market data, volumes, yields and statistics shown are illustrative sample values created for this layout. Options carry substantial risk: buyers can lose the entire premium paid, and sellers can lose considerably more than they receive. Derivatives trading is restricted or prohibited in many jurisdictions.</p>
   </div>
 </footer>
+
+<script>
+(function () {
+  "use strict";
+  var btn = document.getElementById('caCopy');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    var ca = btn.getAttribute('data-ca');
+    var done = function () {
+      btn.textContent = 'Copied';
+      btn.classList.add('done');
+      setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1600);
+    };
+    // navigator.clipboard needs a secure context; fall back to a scratch textarea.
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(ca).then(done, function () {});
+      return;
+    }
+    var t = document.createElement('textarea');
+    t.value = ca;
+    t.setAttribute('readonly', '');
+    t.style.position = 'fixed';
+    t.style.opacity = '0';
+    document.body.appendChild(t);
+    t.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(t);
+  });
+}());
+</script>
 
 <script>
 (function () {
