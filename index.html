@@ -1144,19 +1144,19 @@ details p{padding:0 0 1.35rem;color:var(--ink-2);max-width:66ch;font-size:.95rem
       <div class="feat-list">
         <div class="feat">
           <span class="k">01</span>
-          <div><h3>Off-chain match, on-chain settle</h3><p>Quotes cross in a sequencer-speed matching engine; only the fill touches the chain. You get exchange latency with self-custody.</p></div>
+          <div><h3>Collateralised before it rests</h3><p>An offer locks the writer's maximum payout and a bid escrows the buyer's premium, both before they appear on the book. Nothing quoted here can fail to pay.</p></div>
         </div>
         <div class="feat">
           <span class="k">02</span>
-          <div><h3>Delta-hedged liquidity pool</h3><p>The pool that takes the other side of your trade re-hedges its net delta on every fill, so quotes stay tight when volatility jumps.</p></div>
+          <div><h3>No house, no pool</h3><p>Every option is written by another user who posts their own collateral. The protocol matches and settles; it never takes the other side of your trade and holds no position.</p></div>
         </div>
         <div class="feat">
           <span class="k">03</span>
-          <div><h3>Per-strike exposure caps</h3><p>No single strike can absorb more risk than the pool can hedge. One whale cannot drain the book on a Sunday night.</p></div>
+          <div><h3>Every series stands alone</h3><p>Collateral is held per series, so a loss in one market cannot reach another. There is no shared pot for a bad market to drain.</p></div>
         </div>
         <div class="feat">
           <span class="k">04</span>
-          <div><h3>Oracle-settled, dispute-windowed</h3><p>Expiry marks come from a median of independent price feeds with a challenge window before funds move.</p></div>
+          <div><h3>Oracle-settled, dispute-windowed</h3><p>Expiry is settled at the Chainlink round that straddled it, not whatever the price is when someone gets around to settling, with a challenge window before funds move.</p></div>
         </div>
       </div>
     </div>
@@ -1164,17 +1164,17 @@ details p{padding:0 0 1.35rem;color:var(--ink-2);max-width:66ch;font-size:.95rem
       <div class="vault">
         <div class="vault-head">
           <p class="eyebrow">Other side of the trade</p>
-          <h3>Sell volatility,<br>collect the premium</h3>
+          <h3>Write it yourself,<br>keep the premium</h3>
         </div>
         <div class="vault-rows">
-          <div><span>Pool TVL</span><b>$41.2M</b></div>
-          <div><span>Trailing 30d yield</span><b>18.4%</b></div>
-          <div><span>Utilisation</span><b>63%</b></div>
-          <div><span>Hedge frequency</span><b>every fill</b></div>
+          <div><span>Who takes the other side</span><b>Another user</b></div>
+          <div><span>Protocol's position</span><b>None</b></div>
+          <div><span>Collateral held by</span><b>The writer</b></div>
+          <div><span>Protocol takes</span><b>1% of premium</b></div>
         </div>
         <div class="vault-note">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex:none;margin-top:2px" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
-          <span>Deposit USDC and you are underwriting the options traders buy. Premiums accrue continuously; a sharp move against the pool can still print a losing week. Yield shown is trailing, not promised.</span>
+          <span>Writing an option means locking its maximum payout until expiry and keeping the premium if it expires worthless. You choose the strike and the price. Your loss is capped at the collateral you post, and it is your position — not a pool's, and not the protocol's.</span>
         </div>
       </div>
     </div>
@@ -1264,12 +1264,12 @@ details p{padding:0 0 1.35rem;color:var(--ink-2);max-width:66ch;font-size:.95rem
           <tr>
             <td class="name">HockeystickBook</td>
             <td class="addr"><a class="mono" href="https://explorer.testnet.chain.robinhood.com/address/0x71F46421AB4e15af12E63B23eB88c8d2f4e508df" target="_blank" rel="noopener" title="0x71F46421AB4e15af12E63B23eB88c8d2f4e508df">0x71F46421AB4e15af12E63B23eB88c8d2f4e508df</a></td>
-            <td class="name">order book</td>
+            <td class="name">live &middot; no house</td>
           </tr>
           <tr>
             <td class="name">HockeystickVault</td>
             <td class="addr"><a class="mono" href="https://explorer.testnet.chain.robinhood.com/address/0x2a4d14f5f7ad1cde33d9687caf732087bb2df79e" target="_blank" rel="noopener" title="0x2a4d14f5f7ad1cde33d9687caf732087bb2df79e">0x2a4d14f5f7ad1cde33d9687caf732087bb2df79e</a></td>
-            <td class="name">core</td>
+            <td class="name">not in use</td>
           </tr>
           <tr>
             <td class="name">TestUSDC</td>
@@ -1299,7 +1299,7 @@ details p{padding:0 0 1.35rem;color:var(--ink-2);max-width:66ch;font-size:.95rem
           </tbody>
         </table>
       </div>
-      <p class="addr-foot"><strong>Two ways to trade the same options.</strong> The <em>book</em> is peer-to-peer: a writer posts collateral and an ask, a buyer fills it, and the protocol never takes a side. The <em>vault</em> is pooled: it always quotes every strike, with LPs on the other side. Both settle identically against the same oracles. <strong>Testnet only, and not audited.</strong> Balances here carry no value: claim tUSDC from the faucet to try it. Testnet aggregators are writable stand-ins; Chainlink has not deployed feeds to this network. The production ChainlinkOracle adapter runs unchanged in front of them. Full deployment record, including aggregators and volatility parameters, is in <a href="https://github.com/Hockeystickhq/hockeystick/blob/main/contracts/deploy/testnet.json" target="_blank" rel="noopener">contracts/deploy/testnet.json</a>.</p>
+      <p class="addr-foot"><strong>The book is the exchange.</strong> A writer posts collateral and an ask, a buyer fills it, and the protocol never takes the other side — it holds no position and cannot lose on a trade. <em>HockeystickVault</em> is an earlier pooled design in which a shared pot underwrites every trade; it is kept in the repository for reference and is <strong>not part of the exchange</strong>. Do not deposit into it. <strong>Testnet only, and not audited.</strong> Balances here carry no value: claim tUSDC from the faucet to try it. Testnet aggregators are writable stand-ins; Chainlink has not deployed feeds to this network. The production ChainlinkOracle adapter runs unchanged in front of them. Full deployment record, including aggregators and volatility parameters, is in <a href="https://github.com/Hockeystickhq/hockeystick/blob/main/contracts/deploy/testnet.json" target="_blank" rel="noopener">contracts/deploy/testnet.json</a>.</p>
     </div>
   </div>
 </section>
