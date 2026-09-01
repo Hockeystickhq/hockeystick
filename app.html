@@ -138,6 +138,8 @@ tr[aria-selected=true] td.call,tr[aria-selected=true] td.put{background:transpar
 <header>
   <span class="brand">Hockeystick</span>
   <a href="/">← Site</a>
+  <a href="https://x.com/HockeystickHq" target="_blank" rel="noopener">X ↗</a>
+  <a href="https://github.com/Hockeystickhq/hockeystick" target="_blank" rel="noopener">GitHub ↗</a>
   <span class="spacer"></span>
   <div id="acct"><div class="hint">no account</div></div>
 </header>
@@ -261,15 +263,10 @@ async function boot() {
     bar.textContent = h.live
       ? '⚠ LIVE — orders place real trades with real money'
       : 'Paper trading — simulated orders, no real money at risk';
-    if (!h.credentialsPresent) {
-      bar.className = 'err';
-      bar.textContent = 'No API keys configured — add them to server/.env, then restart';
-      return;
-    }
   } catch {
     const bar = $('envbar');
     bar.className = 'err';
-    bar.textContent = 'Backend unreachable — start it with: cd server && npm start';
+    bar.textContent = 'Service temporarily unavailable — please try again shortly';
     return;
   }
 

@@ -24,9 +24,6 @@ export const config = {
 
 export function assertCredentials() {
   if (!config.keyId || !config.secretKey) {
-    throw new Error(
-      'Missing ALPACA_KEY_ID or ALPACA_SECRET_KEY. Copy server/.env.example to ' +
-      'server/.env and fill in keys from https://alpaca.markets.'
-    );
+    throw new Error('Market data is temporarily unavailable.');
   }
 }
