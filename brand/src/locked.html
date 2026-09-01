@@ -1,0 +1,89 @@
+<link rel="stylesheet" href="shared.css">
+<style>
+body{width:1600px;height:900px;overflow:hidden}
+.b{position:relative;width:1600px;height:900px;background:var(--ink);overflow:hidden}
+.grain{position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;opacity:.42}
+
+/* ---- masthead ---- */
+.badge{position:absolute;left:88px;top:74px;width:72px;height:72px;border:1.5px solid rgba(237,238,228,.28);overflow:hidden}
+.badge svg{width:100%;height:100%;display:block}
+.eyebrow{position:absolute;left:184px;top:100px;font-size:14px;letter-spacing:.19em;text-transform:uppercase;color:rgba(237,238,228,.66)}
+.stamp{position:absolute;right:88px;top:78px;padding:9px 18px 10px;background:var(--volt);color:var(--ink);
+  font-size:14px;letter-spacing:.2em;text-transform:uppercase;box-shadow:5px 5px 0 var(--pin-up)}
+
+/* ---- headline ---- */
+.hero{position:absolute;left:84px;top:196px;font-size:134px;line-height:1.02;color:var(--pin-fg);white-space:nowrap}
+.ghost{position:absolute;left:81px;top:193px;font-size:134px;line-height:1.02;color:var(--pin-up);opacity:.45;white-space:nowrap}
+.hl{position:relative;z-index:1;color:var(--ink);padding:0 10px}
+.hl:before{content:"";position:absolute;left:0;right:0;top:19px;bottom:12px;background:var(--volt);z-index:-1}
+.tag{position:absolute;left:88px;top:490px;width:1000px;font-size:28px;line-height:1.3;color:rgba(237,238,228,.72);letter-spacing:-.005em}
+
+/* ---- lock mark ---- */
+.lock{position:absolute;right:118px;top:212px;width:250px;height:250px}
+.lock svg{width:100%;height:100%;display:block}
+
+/* ---- stat rail ---- */
+.rail{position:absolute;left:88px;top:614px;display:flex;gap:26px}
+.t{width:341px;background:#1B1D14;border:1.5px solid #3A3D2E;border-top:3px solid var(--volt);padding:20px 22px 22px}
+.t .k{font-size:12px;letter-spacing:.19em;text-transform:uppercase;color:rgba(237,238,228,.58)}
+.t .v{margin-top:12px;font-size:40px;line-height:1;color:var(--pin-fg);letter-spacing:-.01em}
+.t .v.sm{font-size:26px;word-break:break-all}
+.t .n{margin-top:11px;font-size:12.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--pin-up)}
+
+/* ---- bottom band ---- */
+.band{position:absolute;left:0;right:0;top:816px;height:84px;background:var(--volt)}
+.url{position:absolute;left:88px;top:849px;font-size:22px;letter-spacing:.02em;color:var(--ink)}
+.ticker{position:absolute;right:88px;top:853px;font-size:13px;letter-spacing:.165em;text-transform:uppercase;color:var(--ink);white-space:nowrap}
+.ticker i{font-style:normal;padding:0 13px;opacity:.5}
+</style>
+
+<div class="b">
+  <div class="badge" id="badge"></div>
+  <div class="eyebrow mono">Hockeystick &middot; on-chain options exchange</div>
+  <div class="stamp mono">Verify on-chain</div>
+
+  <div class="ghost wm" aria-hidden="true">DEV SUPPLY<br>IS LOCKED</div>
+  <div class="hero wm">DEV SUPPLY<br>IS <span class="hl">LOCKED</span></div>
+  <div class="tag sans">Team allocation is held by a lock contract, not a wallet. Nobody &mdash; us included &mdash; can move it before the unlock date. Check it yourself.</div>
+
+  <div class="lock" id="lock"></div>
+
+  <div class="rail">
+    <div class="t"><div class="k mono">Amount locked</div><div class="v mono">&mdash;</div><div class="n mono">Tokens</div></div>
+    <div class="t"><div class="k mono">Share of supply</div><div class="v mono">&mdash;&#37;</div><div class="n mono">Of total supply</div></div>
+    <div class="t"><div class="k mono">Unlocks</div><div class="v mono">&mdash;</div><div class="n mono">Cliff, then vest</div></div>
+    <div class="t"><div class="k mono">Lock contract</div><div class="v sm mono">0x&hellip;</div><div class="n mono">Read it on the explorer</div></div>
+  </div>
+
+  <div class="band"></div>
+  <div class="url mono">hockeystick.fun</div>
+  <div class="ticker mono">Read the contract <i>&#10022;</i> Check the address <i>&#10022;</i> Do not take our word for it</div>
+
+  <svg class="grain" id="gr" width="1600" height="900" viewBox="0 0 1600 900" preserveAspectRatio="none"></svg>
+</div>
+
+<script>
+document.getElementById('badge').innerHTML = `
+<svg viewBox="0 0 100 100" fill="none">
+  <path d="M11 67 H89" stroke="#EDEEE4" stroke-opacity=".24" stroke-width="1.4" stroke-dasharray="2.5 3.5"/>
+  <g transform="translate(-2.4,-2.4)" opacity=".9"><path d="M20 67 H49 L80 30" stroke="#5FE3FF" stroke-width="9.5" fill="none"/></g>
+  <path d="M20 67 H49 L80 30" stroke="#D8EE2E" stroke-width="9.5" fill="none"/>
+</svg>`;
+
+/* ---- padlock whose shackle is the long-call payoff curve ---- */
+document.getElementById('lock').innerHTML = `
+<svg viewBox="0 0 200 200" fill="none">
+  <g transform="translate(-5,-5)" opacity=".5">
+    <path d="M56 88 V62 a44 44 0 0 1 88 0 V88" stroke="#5FE3FF" stroke-width="13" fill="none"/>
+    <rect x="30" y="88" width="140" height="96" stroke="#5FE3FF" stroke-width="9" fill="none"/>
+  </g>
+  <path d="M56 88 V62 a44 44 0 0 1 88 0 V88" stroke="#D8EE2E" stroke-width="13" fill="none"/>
+  <rect x="30" y="88" width="140" height="96" fill="#D8EE2E"/>
+  <path d="M62 156 H96 L140 112" stroke="#14150F" stroke-width="11" stroke-linejoin="miter" fill="none"/>
+</svg>`;
+
+document.getElementById('gr').innerHTML = `
+<filter id="gg"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="4" seed="7"/>
+<feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope="0.16"/></feComponentTransfer></filter>
+<rect width="1600" height="900" filter="url(#gg)"/>`;
+</script>

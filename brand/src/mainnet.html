@@ -1,0 +1,96 @@
+<link rel="stylesheet" href="shared.css">
+<style>
+body{width:1600px;height:900px;overflow:hidden}
+.b{position:relative;width:1600px;height:900px;background:var(--paper);overflow:hidden}
+.grain{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply;opacity:.5}
+
+.badge{position:absolute;left:88px;top:74px;width:72px;height:72px;background:var(--ink);overflow:hidden}
+.badge svg{width:100%;height:100%;display:block}
+.eyebrow{position:absolute;left:184px;top:100px;font-size:14px;letter-spacing:.19em;text-transform:uppercase;color:var(--dim)}
+.stamp{position:absolute;right:88px;top:78px;padding:9px 18px 10px;background:var(--ink);color:var(--volt);
+  font-size:14px;letter-spacing:.2em;text-transform:uppercase;box-shadow:5px 5px 0 var(--up)}
+
+.hero{position:absolute;left:84px;top:186px;font-size:146px;line-height:1;color:var(--ink);white-space:nowrap}
+.ghost{position:absolute;left:81px;top:183px;font-size:146px;line-height:1;color:var(--up);opacity:.5;white-space:nowrap}
+.hl{position:relative;z-index:1;padding:0 10px}
+.hl:before{content:"";position:absolute;left:0;right:0;top:20px;bottom:13px;background:var(--volt);z-index:-1}
+.tag{position:absolute;left:88px;top:356px;width:1180px;font-size:29px;line-height:1.28;color:var(--ink-2);letter-spacing:-.005em}
+.tag b{color:var(--ink);font-weight:500}
+
+/* ---- three-step rail ---- */
+.rail{position:absolute;left:88px;top:470px;display:flex;gap:32px}
+.s{width:453px;background:var(--surface,#F7F8F1);border:1.5px solid var(--ink);box-shadow:7px 7px 0 var(--ink);padding:18px 20px 20px}
+.s .top{display:flex;justify-content:space-between;align-items:center}
+.s .no{font-size:12px;letter-spacing:.2em;color:var(--dim)}
+.s .pill{font-size:11.5px;letter-spacing:.17em;text-transform:uppercase;padding:4px 11px 5px;border:1.5px solid var(--ink)}
+.s .pill.done{background:var(--ink);color:var(--volt)}
+.s .pill.next{background:var(--volt);color:var(--ink)}
+.s .ti{margin-top:15px;font-size:23px;line-height:1.15;letter-spacing:-.01em;color:var(--ink)}
+.s .de{margin-top:10px;font-size:13.5px;line-height:1.5;letter-spacing:.055em;text-transform:uppercase;color:var(--dim)}
+
+/* ---- market chips ---- */
+.mk{position:absolute;left:88px;top:700px;width:1424px;display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap}
+.mk .lb{font-size:12px;letter-spacing:.19em;text-transform:uppercase;color:var(--dim);margin-right:6px}
+.mk span.c{font-size:14px;letter-spacing:.11em;padding:6px 11px 7px;border:1.5px solid var(--line-soft);color:var(--ink-2)}
+.mk span.c.eq{border-color:var(--ink);color:var(--ink)}
+
+.band{position:absolute;left:0;right:0;top:816px;height:84px;background:var(--ink);border-top:3px solid var(--volt)}
+.url{position:absolute;left:88px;top:849px;font-size:22px;letter-spacing:.02em;color:var(--volt)}
+.ticker{position:absolute;right:88px;top:853px;font-size:13px;letter-spacing:.165em;text-transform:uppercase;color:var(--pin-fg);white-space:nowrap}
+.ticker i{color:var(--volt);font-style:normal;padding:0 13px}
+</style>
+
+<div class="b">
+  <div class="badge" id="badge"></div>
+  <div class="eyebrow mono">Hockeystick &middot; on-chain options exchange</div>
+  <div class="stamp mono">Robinhood Chain &middot; 4663</div>
+
+  <div class="ghost wm" aria-hidden="true">MAINNET IS NEXT</div>
+  <div class="hero wm">MAINNET IS <span class="hl">NEXT</span></div>
+  <div class="tag sans">The dapp is launching on Robinhood Chain. Options on crypto <b>and</b> tokenized equities, priced and settled by the same contract, from one wallet.</div>
+
+  <div class="rail">
+    <div class="s">
+      <div class="top mono"><span class="no">STEP 01</span><span class="pill done">Deployed</span></div>
+      <div class="ti sans">Contracts live on testnet</div>
+      <div class="de mono">Vault, oracle adapter, and four markets running today</div>
+    </div>
+    <div class="s">
+      <div class="top mono"><span class="no">STEP 02</span><span class="pill done">Mapped</span></div>
+      <div class="ti sans">Twelve mainnet feeds</div>
+      <div class="de mono">Every listing reverts unless its feed returns a price</div>
+    </div>
+    <div class="s">
+      <div class="top mono"><span class="no">STEP 03</span><span class="pill next">Soon</span></div>
+      <div class="ti sans">Mainnet dapp</div>
+      <div class="de mono">Chain 4663 &middot; cash settled in USDC</div>
+    </div>
+  </div>
+
+  <div class="mk mono">
+    <span class="lb">At launch</span>
+    <span class="c">BTC</span><span class="c">ETH</span><span class="c">LINK</span>
+    <span class="c eq">AAPL</span><span class="c eq">COIN</span><span class="c eq">MSTR</span><span class="c eq">NVDA</span>
+    <span class="c eq">TSLA</span><span class="c eq">SPY</span><span class="c eq">QQQ</span><span class="c eq">SLV</span><span class="c eq">USO</span>
+  </div>
+
+  <div class="band"></div>
+  <div class="url mono">hockeystick.fun</div>
+  <div class="ticker mono">Fully collateralized at sale <i>&#10022;</i> Oracle-settled <i>&#10022;</i> Dispute-windowed</div>
+
+  <svg class="grain" id="gr" width="1600" height="900" viewBox="0 0 1600 900" preserveAspectRatio="none"></svg>
+</div>
+
+<script>
+document.getElementById('badge').innerHTML = `
+<svg viewBox="0 0 100 100" fill="none">
+  <rect width="100" height="100" fill="#14150F"/>
+  <path d="M11 67 H89" stroke="#EDEEE4" stroke-opacity=".24" stroke-width="1.4" stroke-dasharray="2.5 3.5"/>
+  <g transform="translate(-2.4,-2.4)" opacity=".9"><path d="M20 67 H49 L80 30" stroke="#5FE3FF" stroke-width="9.5" fill="none"/></g>
+  <path d="M20 67 H49 L80 30" stroke="#D8EE2E" stroke-width="9.5" fill="none"/>
+</svg>`;
+document.getElementById('gr').innerHTML = `
+<filter id="gg"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" seed="11"/>
+<feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope="0.13"/></feComponentTransfer></filter>
+<rect width="1600" height="900" filter="url(#gg)"/>`;
+</script>

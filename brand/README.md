@@ -17,6 +17,14 @@ misregistration. The dotted rule is the zero line.
 | `x-avatar-800.png` | Profile picture (retina) | 800×800 — upload this one; X downsamples |
 | `x-banner-1500x500.png` | Header | 1500×500 (3:1) |
 | `x-banner-3000x1000.png` | Header (retina) | upload this one; 535 KB, well under X's 2 MB cap |
+| `x-live-1600x900.png` | Launch post image | 1600×900 (16:9) |
+| `x-live-3200x1800.png` | Launch post image (retina) | upload this one |
+| `x-shapes-1600x900.png` | The four strategies, post image | 1600×900 (16:9) |
+| `x-shapes-3200x1800.png` | The four strategies (retina) | upload this one |
+| `x-locked-1600x900.png` | Locked-supply card, post image | 1600×900 (16:9) |
+| `x-locked-3200x1800.png` | Locked-supply card (retina) | upload this one |
+| `x-mainnet-1600x900.png` | Mainnet-soon card, post image | 1600×900 (16:9) |
+| `x-mainnet-3200x1800.png` | Mainnet-soon card (retina) | upload this one |
 
 **Banner safe zones** (verified against a 600px X profile mock):
 - Profile photo overlaps roughly `x 40–385, y 332–500`. Nothing lives there — the ticker
@@ -60,13 +68,25 @@ mono labels). Same three faces the site loads. TTFs are vendored in `src/fonts/`
 cd src
 ./render.sh banner.html 1500 500 ../x-banner-3000x1000.png 2
 ./render.sh avatar.html  400 400 ../x-avatar-800.png 2
+./render.sh live.html   1600 900 ../x-live-3200x1800.png 2
+./render.sh shapes.html 1600 900 ../x-shapes-3200x1800.png 2
+./render.sh locked.html 1600 900 ../x-locked-3200x1800.png 2
+./render.sh mainnet.html 1600 900 ../x-mainnet-3200x1800.png 2
 python3 build_assets.py          # rebuilds the SVGs (needs fonttools)
 ```
 
-`render.sh` drives headless Chrome. Edit `banner.html` / `avatar.html` to change copy —
+`render.sh` drives headless Chrome. Edit `banner.html` / `avatar.html` / `live.html` / `shapes.html` / `locked.html` / `mainnet.html` to change copy —
 the payoff chart geometry is the `kx, ky, zero, ex, ey, sx` constants in `banner.html`.
 
 ## Note on copy
 
 The banner claims only what the site claims — no invented metrics, handles, or URLs.
 Add a domain to the bottom band once one is live.
+
+`mainnet.html`'s twelve tickers and its step copy come from `contracts/deploy/` —
+`feeds.mainnet.json` for the listings, `testnet.json` for what is already deployed.
+Re-read those files before changing the card, so it never claims more than the chain does.
+
+`locked.html` ships with its four stat tiles unfilled (`—`, `0x…`) on purpose. Every
+value on that card is a claim someone will check on an explorer, so fill them from the
+deployed lock contract before rendering — never from an estimate.
