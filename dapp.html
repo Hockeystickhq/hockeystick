@@ -64,6 +64,8 @@ label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.07e
 input,select{background:var(--paper);border:2px solid var(--line);border-radius:var(--r);padding:.45rem .55rem;max-width:100%}
 input:focus,select:focus{outline:2px solid var(--volt);outline-offset:1px}
 input[type=number]{width:8rem}
+#search{width:11rem}
+#market{max-width:14rem}
 
 button{background:var(--paper);border:2px solid var(--line);border-radius:var(--r);padding:.45rem .8rem;cursor:pointer;font-weight:600}
 button:hover:not(:disabled){background:var(--paper-2)}
@@ -121,12 +123,16 @@ td.empty{text-align:center;color:var(--dim)}
 <main>
   <div class="col">
     <section class="panel">
-      <h2>Market <span class="spacer"></span><span class="hint mono" id="spot"></span></h2>
+      <h2>Market <span class="hint" id="marketCount"></span><span class="spacer"></span><span class="hint mono" id="spot"></span></h2>
       <div class="body">
         <div class="row" style="margin-bottom:.9rem">
           <div>
+            <label for="search">Find</label>
+            <input id="search" type="search" placeholder="BTC, NVDA, DOGE…" autocomplete="off">
+          </div>
+          <div>
             <label for="market">Underlying</label>
-            <select id="market"><option>connect first</option></select>
+            <select id="market"><option>loading…</option></select>
           </div>
           <div>
             <label for="strike">Strike (USD)</label>
@@ -271,7 +277,7 @@ td.empty{text-align:center;color:var(--dim)}
   var CHAIN_HEX = "0xb626";
   var RPC = "https://rpc.testnet.chain.robinhood.com";
   var EXPLORER = "https://explorer.testnet.chain.robinhood.com";
-  var BOOK = "0x51f25850b2d08D5074A3fD42089a30B3B867edA1";
+  var BOOK = "0x71F46421AB4e15af12E63B23eB88c8d2f4e508df";
   var USDC = "0x5f9ea3a11da65fbdf559c9f2218dd231d2a11358";
 
   var BOOK_ABI = [
@@ -418,20 +424,26 @@ td.empty{text-align:center;color:var(--dim)}
 
   /* -------------------------------- markets ------------------------------- */
 
+  // A hundred markets means two calls each; sequentially that is 200 round trips
+  // and a page that looks broken. Fetch in parallel, in bounded chunks so the
+  // RPC is not hit with 200 at once.
   async function loadMarkets() {
     try {
       var n = Number(await bookRead.marketCount());
+      $("marketCount").textContent = n + " markets";
+
       var out = [];
-      for (var i = 0; i < n; i++) {
-        var m = await bookRead.market(i);
-        var oracle = new ethers.Contract(m.oracle, ORACLE_ABI, read);
-        var desc = await oracle.description();
-        out.push({ id: i, oracle: m.oracle, capBps: Number(m.payoutCapBps), name: desc, verified: m.verified });
+      var CHUNK = 20;
+      for (var start = 0; start < n; start += CHUNK) {
+        var jobs = [];
+        for (var i = start; i < Math.min(start + CHUNK, n); i++) {
+          jobs.push(loadOneMarket(i));
+        }
+        out = out.concat(await Promise.all(jobs));
       }
+
       state.markets = out;
-      $("market").innerHTML = out.map(function (m) {
-        return '<option value="' + m.id + '">' + m.name + (m.verified ? "" : "  (unverified)") + "</option>";
-      }).join("");
+      renderMarketOptions("");
       await onMarketChange();
     } catch (e) {
       $("envbar").className = "err";
@@ -439,8 +451,35 @@ td.empty{text-align:center;color:var(--dim)}
     }
   }
 
+  async function loadOneMarket(i) {
+    var m = await bookRead.market(i);
+    var oracle = new ethers.Contract(m.oracle, ORACLE_ABI, read);
+    var desc = await oracle.description();
+    return { id: i, oracle: m.oracle, capBps: Number(m.payoutCapBps), name: desc, verified: m.verified };
+  }
+
+  // With this many listings a bare dropdown is unusable, so it is filterable.
+  function renderMarketOptions(query) {
+    var q = (query || "").trim().toUpperCase();
+    var list = state.markets.filter(function (m) {
+      return !q || m.name.toUpperCase().indexOf(q) !== -1;
+    });
+    if (!list.length) {
+      $("market").innerHTML = '<option value="">no match</option>';
+      return;
+    }
+    $("market").innerHTML = list.map(function (m) {
+      return '<option value="' + m.id + '">' + m.name + (m.verified ? "" : "  (unverified)") + "</option>";
+    }).join("");
+  }
+
   async function onMarketChange() {
-    var m = state.markets[Number($("market").value) || 0];
+    var sel = $("market").value;
+    if (sel === "") return;
+    var m = null;
+    for (var i = 0; i < state.markets.length; i++) {
+      if (state.markets[i].id === Number(sel)) m = state.markets[i];
+    }
     if (!m) return;
     state.marketId = m.id;
     state.capBps = m.capBps;
@@ -923,6 +962,10 @@ td.empty{text-align:center;color:var(--dim)}
 
   $("connect").addEventListener("click", connect);
   $("market").addEventListener("change", onMarketChange);
+  $("search").addEventListener("input", function () {
+    renderMarketOptions($("search").value);
+    onMarketChange();
+  });
   $("load").addEventListener("click", loadBook);
   $("buyBtn").addEventListener("click", buy);
   $("writeBtn").addEventListener("click", write);

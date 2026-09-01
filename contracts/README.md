@@ -109,10 +109,27 @@ liquidated.
 
 | Contract | Address |
 |---|---|
-| HockeystickBook | [`0x51f25850...B867edA1`](https://explorer.testnet.chain.robinhood.com/address/0x51f25850b2d08D5074A3fD42089a30B3B867edA1) |
+| HockeystickBook | [`0x71F46421...f4e508df`](https://explorer.testnet.chain.robinhood.com/address/0x71F46421AB4e15af12E63B23eB88c8d2f4e508df) |
 
-Same four markets, same TestUSDC collateral. Full record in
-[`deploy/testnet-book.json`](deploy/testnet-book.json).
+**100 markets listed** - 30 tokenized equities, 25 memecoins, 20 crypto majors,
+12 index ETFs, 8 commodities and 5 FX pairs. Same TestUSDC collateral. The
+catalogue is data, in [`deploy/markets.testnet.json`](deploy/markets.testnet.json),
+listed in batches by [`script/ListMarkets.s.sol`](script/ListMarkets.s.sol):
+
+```
+BOOK=0x… FROM=0 TO=25 forge script script/ListMarkets.s.sol \
+  --rpc-url robinhood_testnet --broadcast
+```
+
+Each entry gets its own writable `TestnetAggregator` behind the production
+`ChainlinkOracle` adapter, so the adapter and its staleness checks run unchanged
+and only the feed is synthetic. Chainlink publishes feeds for a dozen of these
+assets on Robinhood Chain mainnet and none for the rest - on mainnet the
+catalogue is bounded by what real feeds exist, which is why the stand-in is
+testnet-only. Payout caps scale with how far an asset can plausibly run: 10x for
+memecoins, 3x for crypto, 2x for equities, 1.2x for FX.
+
+Full record in [`deploy/testnet-book.json`](deploy/testnet-book.json).
 
 First live peer-to-peer trade: 2x 7-day $2,400 ETH puts written for $4,800 locked,
 one filled at $60 premium — the writer received $60.00, the protocol kept $0.60 in

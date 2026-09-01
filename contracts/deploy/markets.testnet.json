@@ -1,0 +1,806 @@
+{
+  "note": "Testnet market catalogue. Each entry gets a writable TestnetAggregator standing in for a Chainlink feed, behind the production ChainlinkOracle adapter. Prices are indicative seeds, not live quotes.",
+  "count": 100,
+  "markets": [
+    {
+      "name": "BTC / USD",
+      "symbol": "BTC",
+      "price": 78182,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "7818200000000"
+    },
+    {
+      "name": "ETH / USD",
+      "symbol": "ETH",
+      "price": 2442,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "244200000000"
+    },
+    {
+      "name": "SOL / USD",
+      "symbol": "SOL",
+      "price": 96.4,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "9640000000"
+    },
+    {
+      "name": "BNB / USD",
+      "symbol": "BNB",
+      "price": 612,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "61200000000"
+    },
+    {
+      "name": "XRP / USD",
+      "symbol": "XRP",
+      "price": 2.11,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "211000000"
+    },
+    {
+      "name": "ADA / USD",
+      "symbol": "ADA",
+      "price": 0.62,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "62000000"
+    },
+    {
+      "name": "AVAX / USD",
+      "symbol": "AVAX",
+      "price": 21.8,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "2180000000"
+    },
+    {
+      "name": "DOT / USD",
+      "symbol": "DOT",
+      "price": 4.05,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "405000000"
+    },
+    {
+      "name": "LINK / USD",
+      "symbol": "LINK",
+      "price": 13.9,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "1390000000"
+    },
+    {
+      "name": "LTC / USD",
+      "symbol": "LTC",
+      "price": 84.2,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "8420000000"
+    },
+    {
+      "name": "BCH / USD",
+      "symbol": "BCH",
+      "price": 432,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "43200000000"
+    },
+    {
+      "name": "TRX / USD",
+      "symbol": "TRX",
+      "price": 0.238,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "23800000"
+    },
+    {
+      "name": "NEAR / USD",
+      "symbol": "NEAR",
+      "price": 2.71,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "271000000"
+    },
+    {
+      "name": "APT / USD",
+      "symbol": "APT",
+      "price": 5.34,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "534000000"
+    },
+    {
+      "name": "ARB / USD",
+      "symbol": "ARB",
+      "price": 0.41,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "41000000"
+    },
+    {
+      "name": "OP / USD",
+      "symbol": "OP",
+      "price": 0.79,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "79000000"
+    },
+    {
+      "name": "SUI / USD",
+      "symbol": "SUI",
+      "price": 2.02,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "202000000"
+    },
+    {
+      "name": "TIA / USD",
+      "symbol": "TIA",
+      "price": 2.44,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "244000000"
+    },
+    {
+      "name": "ATOM / USD",
+      "symbol": "ATOM",
+      "price": 4.62,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "462000000"
+    },
+    {
+      "name": "FIL / USD",
+      "symbol": "FIL",
+      "price": 2.88,
+      "payoutCapBps": 30000,
+      "category": "crypto",
+      "answer8": "288000000"
+    },
+    {
+      "name": "DOGE / USD",
+      "symbol": "DOGE",
+      "price": 0.152,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "15200000"
+    },
+    {
+      "name": "SHIB / USD",
+      "symbol": "SHIB",
+      "price": 1.12e-05,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "1120"
+    },
+    {
+      "name": "PEPE / USD",
+      "symbol": "PEPE",
+      "price": 6.8e-06,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "680"
+    },
+    {
+      "name": "WIF / USD",
+      "symbol": "WIF",
+      "price": 0.71,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "71000000"
+    },
+    {
+      "name": "BONK / USD",
+      "symbol": "BONK",
+      "price": 1.38e-05,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "1380"
+    },
+    {
+      "name": "FLOKI / USD",
+      "symbol": "FLOKI",
+      "price": 7.59e-05,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "7590"
+    },
+    {
+      "name": "BRETT / USD",
+      "symbol": "BRETT",
+      "price": 0.049,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "4900000"
+    },
+    {
+      "name": "POPCAT / USD",
+      "symbol": "POPCAT",
+      "price": 0.221,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "22100000"
+    },
+    {
+      "name": "MEW / USD",
+      "symbol": "MEW",
+      "price": 0.0028,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "280000"
+    },
+    {
+      "name": "TURBO / USD",
+      "symbol": "TURBO",
+      "price": 0.0034,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "340000"
+    },
+    {
+      "name": "MOG / USD",
+      "symbol": "MOG",
+      "price": 9e-07,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "90"
+    },
+    {
+      "name": "TOSHI / USD",
+      "symbol": "TOSHI",
+      "price": 0.00043,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "43000"
+    },
+    {
+      "name": "DEGEN / USD",
+      "symbol": "DEGEN",
+      "price": 0.0041,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "410000"
+    },
+    {
+      "name": "SPX / USD",
+      "symbol": "SPX",
+      "price": 0.61,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "61000000"
+    },
+    {
+      "name": "GIGA / USD",
+      "symbol": "GIGA",
+      "price": 0.0122,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "1220000"
+    },
+    {
+      "name": "PNUT / USD",
+      "symbol": "PNUT",
+      "price": 0.148,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "14800000"
+    },
+    {
+      "name": "GOAT / USD",
+      "symbol": "GOAT",
+      "price": 0.089,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "8900000"
+    },
+    {
+      "name": "ACT / USD",
+      "symbol": "ACT",
+      "price": 0.031,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "3100000"
+    },
+    {
+      "name": "MOODENG / USD",
+      "symbol": "MOODENG",
+      "price": 0.112,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "11200000"
+    },
+    {
+      "name": "SLERF / USD",
+      "symbol": "SLERF",
+      "price": 0.058,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "5800000"
+    },
+    {
+      "name": "TRUMP / USD",
+      "symbol": "TRUMP",
+      "price": 8.42,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "842000000"
+    },
+    {
+      "name": "LADYS / USD",
+      "symbol": "LADYS",
+      "price": 8.1e-08,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "8"
+    },
+    {
+      "name": "HIGHER / USD",
+      "symbol": "HIGHER",
+      "price": 0.0061,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "610000"
+    },
+    {
+      "name": "FWOG / USD",
+      "symbol": "FWOG",
+      "price": 0.041,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "4100000"
+    },
+    {
+      "name": "CHILLGUY / USD",
+      "symbol": "CHILLGUY",
+      "price": 0.0384,
+      "payoutCapBps": 100000,
+      "category": "memecoin",
+      "answer8": "3840000"
+    },
+    {
+      "name": "AAPL / USD",
+      "symbol": "AAPL",
+      "price": 316.46,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "31646000000"
+    },
+    {
+      "name": "MSFT / USD",
+      "symbol": "MSFT",
+      "price": 492.1,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "49210000000"
+    },
+    {
+      "name": "NVDA / USD",
+      "symbol": "NVDA",
+      "price": 218.68,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "21868000000"
+    },
+    {
+      "name": "TSLA / USD",
+      "symbol": "TSLA",
+      "price": 341.2,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "34120000000"
+    },
+    {
+      "name": "AMZN / USD",
+      "symbol": "AMZN",
+      "price": 238.4,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "23840000000"
+    },
+    {
+      "name": "GOOGL / USD",
+      "symbol": "GOOGL",
+      "price": 201.7,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "20170000000"
+    },
+    {
+      "name": "META / USD",
+      "symbol": "META",
+      "price": 702.3,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "70230000000"
+    },
+    {
+      "name": "NFLX / USD",
+      "symbol": "NFLX",
+      "price": 1042.0,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "104200000000"
+    },
+    {
+      "name": "AMD / USD",
+      "symbol": "AMD",
+      "price": 132.8,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "13280000000"
+    },
+    {
+      "name": "INTC / USD",
+      "symbol": "INTC",
+      "price": 24.1,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "2410000000"
+    },
+    {
+      "name": "COIN / USD",
+      "symbol": "COIN",
+      "price": 312.7,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "31270000000"
+    },
+    {
+      "name": "MSTR / USD",
+      "symbol": "MSTR",
+      "price": 298.4,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "29840000000"
+    },
+    {
+      "name": "HOOD / USD",
+      "symbol": "HOOD",
+      "price": 118.2,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "11820000000"
+    },
+    {
+      "name": "PLTR / USD",
+      "symbol": "PLTR",
+      "price": 84.6,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "8460000000"
+    },
+    {
+      "name": "SOFI / USD",
+      "symbol": "SOFI",
+      "price": 18.4,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "1840000000"
+    },
+    {
+      "name": "RIVN / USD",
+      "symbol": "RIVN",
+      "price": 13.2,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "1320000000"
+    },
+    {
+      "name": "F / USD",
+      "symbol": "F",
+      "price": 11.8,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "1180000000"
+    },
+    {
+      "name": "GM / USD",
+      "symbol": "GM",
+      "price": 56.3,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "5630000000"
+    },
+    {
+      "name": "BA / USD",
+      "symbol": "BA",
+      "price": 182.4,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "18240000000"
+    },
+    {
+      "name": "DIS / USD",
+      "symbol": "DIS",
+      "price": 112.7,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "11270000000"
+    },
+    {
+      "name": "JPM / USD",
+      "symbol": "JPM",
+      "price": 278.1,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "27810000000"
+    },
+    {
+      "name": "GS / USD",
+      "symbol": "GS",
+      "price": 624.5,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "62450000000"
+    },
+    {
+      "name": "V / USD",
+      "symbol": "V",
+      "price": 352.8,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "35280000000"
+    },
+    {
+      "name": "MA / USD",
+      "symbol": "MA",
+      "price": 561.2,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "56120000000"
+    },
+    {
+      "name": "WMT / USD",
+      "symbol": "WMT",
+      "price": 104.6,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "10460000000"
+    },
+    {
+      "name": "COST / USD",
+      "symbol": "COST",
+      "price": 921.4,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "92140000000"
+    },
+    {
+      "name": "PFE / USD",
+      "symbol": "PFE",
+      "price": 26.8,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "2680000000"
+    },
+    {
+      "name": "JNJ / USD",
+      "symbol": "JNJ",
+      "price": 162.3,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "16230000000"
+    },
+    {
+      "name": "XOM / USD",
+      "symbol": "XOM",
+      "price": 118.9,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "11890000000"
+    },
+    {
+      "name": "UBER / USD",
+      "symbol": "UBER",
+      "price": 78.4,
+      "payoutCapBps": 20000,
+      "category": "equity",
+      "answer8": "7840000000"
+    },
+    {
+      "name": "SPY / USD",
+      "symbol": "SPY",
+      "price": 672.4,
+      "payoutCapBps": 18000,
+      "category": "index",
+      "answer8": "67240000000"
+    },
+    {
+      "name": "QQQ / USD",
+      "symbol": "QQQ",
+      "price": 598.2,
+      "payoutCapBps": 18000,
+      "category": "index",
+      "answer8": "59820000000"
+    },
+    {
+      "name": "IWM / USD",
+      "symbol": "IWM",
+      "price": 243.1,
+      "payoutCapBps": 18000,
+      "category": "index",
+      "answer8": "24310000000"
+    },
+    {
+      "name": "DIA / USD",
+      "symbol": "DIA",
+      "price": 468.7,
+      "payoutCapBps": 18000,
+      "category": "index",
+      "answer8": "46870000000"
+    },
+    {
+      "name": "VTI / USD",
+      "symbol": "VTI",
+      "price": 332.6,
+      "payoutCapBps": 18000,
+      "category": "index",
+      "answer8": "33260000000"
+    },
+    {
+      "name": "ARKK / USD",
+      "symbol": "ARKK",
+      "price": 78.2,
+      "payoutCapBps": 18000,
+      "category": "index",
+      "answer8": "7820000000"
+    },
+    {
+      "name": "XLF / USD",
+      "symbol": "XLF",
+      "price": 52.4,
+      "payoutCapBps": 18000,
+      "category": "index",
+      "answer8": "5240000000"
+    },
+    {
+      "name": "XLE / USD",
+      "symbol": "XLE",
+      "price": 94.1,
+      "payoutCapBps": 18000,
+      "category": "index",
+      "answer8": "9410000000"
+    },
+    {
+      "name": "XLK / USD",
+      "symbol": "XLK",
+      "price": 268.3,
+      "payoutCapBps": 18000,
+      "category": "index",
+      "answer8": "26830000000"
+    },
+    {
+      "name": "SMH / USD",
+      "symbol": "SMH",
+      "price": 312.8,
+      "payoutCapBps": 18000,
+      "category": "index",
+      "answer8": "31280000000"
+    },
+    {
+      "name": "EEM / USD",
+      "symbol": "EEM",
+      "price": 48.6,
+      "payoutCapBps": 18000,
+      "category": "index",
+      "answer8": "4860000000"
+    },
+    {
+      "name": "EFA / USD",
+      "symbol": "EFA",
+      "price": 92.3,
+      "payoutCapBps": 18000,
+      "category": "index",
+      "answer8": "9230000000"
+    },
+    {
+      "name": "GLD / USD",
+      "symbol": "GLD",
+      "price": 312.4,
+      "payoutCapBps": 15000,
+      "category": "commodity",
+      "answer8": "31240000000"
+    },
+    {
+      "name": "SLV / USD",
+      "symbol": "SLV",
+      "price": 60.41,
+      "payoutCapBps": 15000,
+      "category": "commodity",
+      "answer8": "6041000000"
+    },
+    {
+      "name": "USO / USD",
+      "symbol": "USO",
+      "price": 74.2,
+      "payoutCapBps": 15000,
+      "category": "commodity",
+      "answer8": "7420000000"
+    },
+    {
+      "name": "UNG / USD",
+      "symbol": "UNG",
+      "price": 18.6,
+      "payoutCapBps": 15000,
+      "category": "commodity",
+      "answer8": "1860000000"
+    },
+    {
+      "name": "CORN / USD",
+      "symbol": "CORN",
+      "price": 21.4,
+      "payoutCapBps": 15000,
+      "category": "commodity",
+      "answer8": "2140000000"
+    },
+    {
+      "name": "WEAT / USD",
+      "symbol": "WEAT",
+      "price": 5.12,
+      "payoutCapBps": 15000,
+      "category": "commodity",
+      "answer8": "512000000"
+    },
+    {
+      "name": "DBA / USD",
+      "symbol": "DBA",
+      "price": 26.8,
+      "payoutCapBps": 15000,
+      "category": "commodity",
+      "answer8": "2680000000"
+    },
+    {
+      "name": "PPLT / USD",
+      "symbol": "PPLT",
+      "price": 98.4,
+      "payoutCapBps": 15000,
+      "category": "commodity",
+      "answer8": "9840000000"
+    },
+    {
+      "name": "EUR / USD",
+      "symbol": "EUR",
+      "price": 1.084,
+      "payoutCapBps": 12000,
+      "category": "fx",
+      "answer8": "108400000"
+    },
+    {
+      "name": "GBP / USD",
+      "symbol": "GBP",
+      "price": 1.276,
+      "payoutCapBps": 12000,
+      "category": "fx",
+      "answer8": "127600000"
+    },
+    {
+      "name": "JPY / USD",
+      "symbol": "JPY",
+      "price": 0.0064,
+      "payoutCapBps": 12000,
+      "category": "fx",
+      "answer8": "640000"
+    },
+    {
+      "name": "CHF / USD",
+      "symbol": "CHF",
+      "price": 1.132,
+      "payoutCapBps": 12000,
+      "category": "fx",
+      "answer8": "113200000"
+    },
+    {
+      "name": "AUD / USD",
+      "symbol": "AUD",
+      "price": 0.658,
+      "payoutCapBps": 12000,
+      "category": "fx",
+      "answer8": "65800000"
+    }
+  ]
+}

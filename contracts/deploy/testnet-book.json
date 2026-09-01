@@ -6,40 +6,17 @@
   "deployedAt": "2026-08-31",
   "model": "peer-to-peer, two-sided order book",
   "contracts": {
-    "HockeystickBook": "0x51f25850b2d08D5074A3fD42089a30B3B867edA1",
+    "HockeystickBook": "0x71F46421AB4e15af12E63B23eB88c8d2f4e508df",
     "TestUSDC": "0x5f9ea3a11da65fbdf559c9f2218dd231d2a11358"
   },
-  "markets": [
-    {
-      "id": 0,
-      "name": "ETH / USD",
-      "oracle": "0xad2eeffe19ae2df7f41981b168939657ecebe2ce",
-      "payoutCapBps": 30000
-    },
-    {
-      "id": 1,
-      "name": "BTC / USD",
-      "oracle": "0x8c6ca38e8101ce0133bf9ba0dbc4441a72fc5697",
-      "payoutCapBps": 25000
-    },
-    {
-      "id": 2,
-      "name": "NVDA / USD",
-      "oracle": "0x624e9d8bbc7f5e51bf85f2092dc508bb3bcb8dc0",
-      "payoutCapBps": 20000
-    },
-    {
-      "id": 3,
-      "name": "SLV / USD",
-      "oracle": "0x3ce68452f4859e2e35fcc46be52364766493c2ec",
-      "payoutCapBps": 15000
-    }
-  ],
+  "markets": "See markets.testnet.json - 100 listed, each behind its own TestnetAggregator.",
   "note": "Shares the vault's collateral and oracles. The book takes no protocol-side risk: writers post the full maximum payout and keep the premium, buyers escrow their premium behind a resting bid, and the protocol keeps only the fee. Anyone can list a market via listMarketPermissionless; those are flagged verified=false because the contract cannot judge whether an oracle is honest.",
   "features": [
     "offers (writers sell)",
     "bids (buyers post escrowed premium)",
     "permissionless market listing",
-    "oracle-boundary settlement"
-  ]
+    "oracle-boundary settlement",
+    "100 markets"
+  ],
+  "marketCount": 100
 }

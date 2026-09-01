@@ -25,10 +25,11 @@ contract DeployBook is Script {
         address deployer = vm.addr(pk);
         address collateral = vm.envAddress("COLLATERAL");
 
-        address[] memory oracles = vm.envAddress("ORACLES", ",");
-        uint256[] memory caps = vm.envUint("CAPS", ",");
+        // Markets are optional here: a catalogue is usually listed afterwards
+        // with script/ListMarkets.s.sol, which deploys a feed per entry.
+        address[] memory oracles = vm.envOr("ORACLES", ",", new address[](0));
+        uint256[] memory caps = vm.envOr("CAPS", ",", new uint256[](0));
         require(oracles.length == caps.length, "ORACLES and CAPS length mismatch");
-        require(oracles.length > 0, "no markets to list");
 
         console.log("deployer  ", deployer);
         console.log("balance   ", deployer.balance);
