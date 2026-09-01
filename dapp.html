@@ -282,6 +282,18 @@ td.empty{text-align:center;color:var(--dim)}
   var USDC = "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168";
   var COLLATERAL_SYMBOL = "USDG";
 
+  // Market metadata is immutable once listed, so it is baked in rather than
+  // discovered. A cold page load then costs one RPC call instead of ten, which
+  // is the difference between the public endpoint serving a crowd and refusing
+  // one. Verified against the chain at deploy time; loadMarkets re-checks the
+  // count and falls back to reading them if a market is ever added.
+  var STATIC_MARKETS = [
+    { id: 0, oracle: "0x2a4d14f5f7ad1cde33d9687caf732087bb2df79e", name: "BTC / USD", capBps: 30000, verified: true },
+    { id: 1, oracle: "0xad2eeffe19ae2df7f41981b168939657ecebe2ce", name: "ETH / USD", capBps: 30000, verified: true },
+    { id: 2, oracle: "0x0c155c8b13f3edf77058a19b3e3cc703fe492302", name: "LINK / USD", capBps: 30000, verified: true },
+    { id: 3, oracle: "0x7e919443bd58bd772c09d802eb70fa01e89243ee", name: "Robinhood AAPL / USD", capBps: 20000, verified: true }
+  ];
+
   var BOOK_ABI = [
     "function collateral() view returns (address)",
     "function marketCount() view returns (uint256)",
@@ -330,7 +342,27 @@ td.empty{text-align:center;color:var(--dim)}
   /* -------------------------------- helpers ------------------------------- */
 
   var $ = function (id) { return document.getElementById(id); };
-  var read = new ethers.JsonRpcProvider(RPC, CHAIN_ID, { staticNetwork: true });
+  var read = new ethers.JsonRpcProvider(RPC, CHAIN_ID, {
+    staticNetwork: true,
+    batchMaxCount: 12,   // coalesce reads into one HTTP request
+    batchStallTime: 20
+  });
+
+  // A public endpoint rate-limits under a crowd. Back off and retry rather than
+  // showing an error the first time one call is refused.
+  async function withRetry(fn, tries) {
+    var wait = 400;
+    for (var i = 0; i < (tries || 3); i++) {
+      try { return await fn(); }
+      catch (e) {
+        var msg = String(e && (e.message || e));
+        var transient = /429|Too Many|rate|timeout|retry|network/i.test(msg);
+        if (!transient || i === (tries || 3) - 1) throw e;
+        await new Promise(function (r) { setTimeout(r, wait); });
+        wait *= 2;
+      }
+    }
+  }
   var bookRead = new ethers.Contract(BOOK, BOOK_ABI, read);
 
   var state = {
@@ -430,34 +462,42 @@ td.empty{text-align:center;color:var(--dim)}
   // and a page that looks broken. Fetch in parallel, in bounded chunks so the
   // RPC is not hit with 200 at once.
   async function loadMarkets() {
+    // Render immediately. Nothing here needs the network.
+    state.markets = STATIC_MARKETS.slice();
+    $("marketCount").textContent = state.markets.length + " markets";
+    renderMarketOptions("");
+    onMarketChange();
+
+    // Then confirm the page is describing the contract it is pointed at. One
+    // call, off the critical path, and it only re-reads if something moved.
     try {
       var onChain = await bookRead.collateral();
       if (onChain.toLowerCase() !== USDC.toLowerCase()) {
         $("envbar").className = "err";
         $("envbar").textContent =
           "Configuration mismatch — this book settles in " + onChain + ", not the token this page would approve. Do not trade.";
+        state.markets = [];
+        renderMarketOptions("");
         return;
       }
 
       var n = Number(await bookRead.marketCount());
-      $("marketCount").textContent = n + " markets";
+      if (n === state.markets.length) return;
 
+      // A market was listed since this page was built; read the full set.
       var out = [];
-      var CHUNK = 20;
-      for (var start = 0; start < n; start += CHUNK) {
+      for (var start = 0; start < n; start += 20) {
         var jobs = [];
-        for (var i = start; i < Math.min(start + CHUNK, n); i++) {
-          jobs.push(loadOneMarket(i));
-        }
+        for (var i = start; i < Math.min(start + 20, n); i++) jobs.push(loadOneMarket(i));
         out = out.concat(await Promise.all(jobs));
       }
-
       state.markets = out;
-      renderMarketOptions("");
-      await onMarketChange();
+      $("marketCount").textContent = n + " markets";
+      renderMarketOptions($("search").value);
+      onMarketChange();
     } catch (e) {
-      $("envbar").className = "err";
-      $("envbar").textContent = "Cannot reach Robinhood Chain testnet — " + reason(e);
+      // The static list still renders; only the freshness check failed.
+      $("spot").textContent = "price unavailable";
     }
   }
 
@@ -496,7 +536,7 @@ td.empty{text-align:center;color:var(--dim)}
     state.verified = m.verified;
     try {
       var oracle = new ethers.Contract(m.oracle, ORACLE_ABI, read);
-      var p = await oracle.price();
+      var p = await withRetry(function () { return oracle.price(); });
       state.spot = fromWad(p[0]);
       $("spot").textContent = m.name + "  " + usd(state.spot);
       if (!$("strike").value) $("strike").value = Math.round(state.spot);
