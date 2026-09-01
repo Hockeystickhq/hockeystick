@@ -4,9 +4,9 @@
   "rpc": "https://rpc.testnet.chain.robinhood.com",
   "explorer": "https://explorer.testnet.chain.robinhood.com",
   "deployedAt": "2026-08-31",
-  "model": "peer-to-peer offer book",
+  "model": "peer-to-peer, two-sided order book",
   "contracts": {
-    "HockeystickBook": "0xA756f9f9CC82e23468B9b62867fEE922094D2aAB",
+    "HockeystickBook": "0x51f25850b2d08D5074A3fD42089a30B3B867edA1",
     "TestUSDC": "0x5f9ea3a11da65fbdf559c9f2218dd231d2a11358"
   },
   "markets": [
@@ -35,5 +35,11 @@
       "payoutCapBps": 15000
     }
   ],
-  "note": "Shares the vault's collateral and oracles. The book takes no protocol-side risk: writers post the full maximum payout and keep the premium, so every option is collateralised by the user who wrote it rather than by a pool."
+  "note": "Shares the vault's collateral and oracles. The book takes no protocol-side risk: writers post the full maximum payout and keep the premium, buyers escrow their premium behind a resting bid, and the protocol keeps only the fee. Anyone can list a market via listMarketPermissionless; those are flagged verified=false because the contract cannot judge whether an oracle is honest.",
+  "features": [
+    "offers (writers sell)",
+    "bids (buyers post escrowed premium)",
+    "permissionless market listing",
+    "oracle-boundary settlement"
+  ]
 }

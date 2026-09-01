@@ -38,6 +38,10 @@ contract HockeystickBook is Ownable, ReentrancyGuard {
         IOracle oracle;
         uint64 payoutCapBps; // call payout ceiling as bps of strike, e.g. 20000 = 2x
         bool listed;
+        // False for anything listed permissionlessly. The contract cannot judge
+        // whether an oracle is honest, so it records who vouched for it and
+        // leaves the judgement to whoever is deciding whether to trade.
+        bool verified;
     }
 
     struct Series {
@@ -60,6 +64,15 @@ contract HockeystickBook is Ownable, ReentrancyGuard {
         uint256 size; // contracts still on offer, WAD
         uint256 askPerContract; // collateral units asked per whole contract
         uint256 lockedRemaining; // collateral still tied to the unfilled size
+        bool cancelled;
+    }
+
+    struct Bid {
+        address buyer;
+        bytes32 series;
+        uint256 size; // contracts still wanted, WAD
+        uint256 bidPerContract; // collateral units offered per whole contract
+        uint256 escrowed; // premium plus fee still held for the unfilled size
         bool cancelled;
     }
 
@@ -88,6 +101,15 @@ contract HockeystickBook is Ownable, ReentrancyGuard {
     Market[] private _markets;
     mapping(bytes32 => Series) private _series;
     Offer[] private _offers;
+    Bid[] private _bids;
+
+    /// @notice Premium escrowed behind resting bids. Not collateral, and never
+    ///         drawable by anyone but the bidder or the writer who fills them.
+    uint256 public escrowedPremium;
+
+    /// @notice One market per oracle, so the same feed cannot be listed twice
+    ///         under different parameters and split its liquidity.
+    mapping(address => bool) public oracleListed;
 
     /// @notice Contracts held long, per series, per holder.
     mapping(bytes32 => mapping(address => uint256)) public longOf;
@@ -98,6 +120,9 @@ contract HockeystickBook is Ownable, ReentrancyGuard {
     /// @notice Offer ids resting against a series, for the front end to read.
     mapping(bytes32 => uint256[]) private _seriesOffers;
 
+    /// @notice Bid ids resting against a series, for the front end to read.
+    mapping(bytes32 => uint256[]) private _seriesBids;
+
     /* --------------------------------- events --------------------------------- */
 
     event MarketListed(uint32 indexed marketId, address oracle, string description);
@@ -106,6 +131,9 @@ contract HockeystickBook is Ownable, ReentrancyGuard {
     event Offered(uint256 indexed offerId, bytes32 indexed seriesId, address indexed writer, uint256 size, uint256 ask);
     event Filled(uint256 indexed offerId, bytes32 indexed seriesId, address indexed buyer, uint256 size, uint256 premium, uint256 fee);
     event OfferCancelled(uint256 indexed offerId, uint256 sizeReturned, uint256 collateralReturned);
+    event Bidded(uint256 indexed bidId, bytes32 indexed seriesId, address indexed buyer, uint256 size, uint256 bid);
+    event BidHit(uint256 indexed bidId, bytes32 indexed seriesId, address indexed writer, uint256 size, uint256 premium, uint256 fee);
+    event BidCancelled(uint256 indexed bidId, uint256 sizeReturned, uint256 escrowReturned);
     event Settled(bytes32 indexed seriesId, uint256 settlementPrice, uint256 payoutPerContract);
     event Exercised(bytes32 indexed seriesId, address indexed holder, uint256 size, uint256 payout);
     event Reclaimed(bytes32 indexed seriesId, address indexed writer, uint256 size, uint256 returned);
@@ -124,6 +152,13 @@ contract HockeystickBook is Ownable, ReentrancyGuard {
     error TenorTooLong();
     error ZeroAmount();
     error OfferUnknown();
+    error BidUnknown();
+    error BidClosed();
+    error NotBidder();
+    error InsufficientBidSize(uint256 wanted, uint256 available);
+    error SelfHit();
+    error OracleAlreadyListed();
+    error PremiumBelowMin(uint256 premium, uint256 minPremium);
     error OfferClosed();
     error NotWriter();
     error InsufficientOfferSize(uint256 wanted, uint256 available);
@@ -164,18 +199,47 @@ contract HockeystickBook is Ownable, ReentrancyGuard {
 
     /* ----------------------------------- admin --------------------------------- */
 
+    /// @notice List a market the protocol vouches for.
     function listMarket(address oracle, uint64 payoutCapBps) external onlyOwner returns (uint32 id) {
+        return _list(oracle, payoutCapBps, true);
+    }
+
+    /// @notice List a market without asking anyone's permission.
+    ///
+    /// @dev The contract can check that a feed exists and prices today; it
+    ///      cannot check that the feed is honest. Anyone can therefore list a
+    ///      market behind an oracle they control and settle it wherever they
+    ///      like. That is contained rather than systemic — the book is
+    ///      peer-to-peer and every position is collateralised per series, so a
+    ///      rigged market can only take from people who chose to trade it, and
+    ///      never from the protocol or from other markets. Markets listed this
+    ///      way are flagged `verified = false`, and a front end is expected to
+    ///      say so plainly.
+    function listMarketPermissionless(address oracle, uint64 payoutCapBps) external returns (uint32 id) {
+        // Bound the cap for permissionless listings. A wild cap does not endanger
+        // anyone directly, but it does make the collateral requirement absurd.
+        if (payoutCapBps > 100_000) revert BadParam();
+        return _list(oracle, payoutCapBps, false);
+    }
+
+    function _list(address oracle, uint64 payoutCapBps, bool verified) internal returns (uint32 id) {
         if (oracle == address(0)) revert BadParam();
         // A cap at or below par would make every call worthless; require real upside.
         if (payoutCapBps <= 10_000) revert BadParam();
+        if (oracleListed[oracle]) revert OracleAlreadyListed();
 
         // Refuse a feed that cannot price today, rather than listing a market
-        // that can never settle.
+        // that can never settle. A feed with no staleness bound can never be
+        // settled safely either, so require one.
         (uint256 p,) = IOracle(oracle).price();
         if (p == 0) revert BadParam();
+        if (IOracle(oracle).maxAge() == 0) revert BadParam();
 
+        oracleListed[oracle] = true;
         id = uint32(_markets.length);
-        _markets.push(Market({oracle: IOracle(oracle), payoutCapBps: payoutCapBps, listed: true}));
+        _markets.push(
+            Market({oracle: IOracle(oracle), payoutCapBps: payoutCapBps, listed: true, verified: verified})
+        );
 
         emit MarketListed(id, oracle, IOracle(oracle).description());
     }
@@ -258,6 +322,45 @@ contract HockeystickBook is Ownable, ReentrancyGuard {
             }
         }
         if (offerId == type(uint256).max) ask = 0;
+    }
+
+    function bidCount() external view returns (uint256) {
+        return _bids.length;
+    }
+
+    function bid(uint256 bidId) external view returns (Bid memory) {
+        return _bids[bidId];
+    }
+
+    /// @notice Bid ids resting against a series, newest last.
+    function seriesBids(bytes32 id) external view returns (uint256[] memory) {
+        return _seriesBids[id];
+    }
+
+    /// @notice Highest live bid on a series.
+    /// @return bidId The best bid, or type(uint256).max if nobody is bidding.
+    /// @return px Its price per whole contract, in collateral units.
+    function bestBid(bytes32 id) external view returns (uint256 bidId, uint256 px) {
+        uint256[] storage ids = _seriesBids[id];
+        bidId = type(uint256).max;
+        for (uint256 i; i < ids.length; ++i) {
+            Bid storage b = _bids[ids[i]];
+            if (b.cancelled || b.size == 0) continue;
+            if (bidId == type(uint256).max || b.bidPerContract > px) {
+                bidId = ids[i];
+                px = b.bidPerContract;
+            }
+        }
+        if (bidId == type(uint256).max) px = 0;
+    }
+
+    /// @notice What a writer receives, and the fee taken, for hitting `size` of a bid.
+    function hitProceeds(uint256 bidId, uint256 size) public view returns (uint256 premium, uint256 fee) {
+        Bid storage b = _bids[bidId];
+        if (b.size == 0) return (0, 0);
+        uint256 released = size == b.size ? b.escrowed : F.fullMulDiv(b.escrowed, size, b.size);
+        premium = F.fullMulDiv(released, 10_000, 10_000 + uint256(feeBps));
+        fee = released - premium;
     }
 
     /// @notice Collateral a writer must post to offer `size` contracts.
@@ -392,6 +495,142 @@ contract HockeystickBook is Ownable, ReentrancyGuard {
         collateral.safeTransfer(msg.sender, returned);
 
         emit OfferCancelled(offerId, sizeReturned, returned);
+    }
+
+    /* ------------------------------------ bids --------------------------------- */
+
+    /// @notice Post a bid for `size` contracts, escrowing the premium and fee.
+    ///
+    /// @dev The other half of the book. An offer is a writer saying what they
+    ///      will sell at; a bid is a buyer saying what they will pay. Escrowing
+    ///      up front is what makes the bid real — a writer who hits it is paid
+    ///      in the same transaction, with nothing to chase.
+    function placeBid(
+        uint32 marketId,
+        uint256 strike,
+        uint40 expiry,
+        bool isCall,
+        uint256 size,
+        uint256 bidPerContract
+    ) external nonReentrant returns (uint256 bidId, bytes32 id) {
+        if (size == 0 || strike == 0 || bidPerContract == 0) revert ZeroAmount();
+
+        Market storage m = _markets[marketId];
+        if (!m.listed) revert MarketNotListed();
+        if (expiry <= block.timestamp) revert SeriesExpired();
+        if (expiry - block.timestamp > maxTenor) revert TenorTooLong();
+
+        id = seriesId(marketId, strike, expiry, isCall);
+        Series storage sr = _series[id];
+
+        if (sr.expiry == 0) {
+            sr.marketId = marketId;
+            sr.expiry = expiry;
+            sr.isCall = isCall;
+            sr.strike = strike;
+            sr.lockPerContract = _fromWadUp(_maxPayoutPerContract(m.payoutCapBps, strike, isCall));
+            emit SeriesOpened(id, marketId, strike, expiry, isCall);
+        } else if (sr.settled) {
+            revert AlreadySettled();
+        }
+
+        uint256 premium = F.fullMulDivUp(bidPerContract, size, 1e18);
+        uint256 fee = (premium * feeBps) / 10_000;
+        uint256 escrow = premium + fee;
+        if (escrow == 0) revert ZeroAmount();
+
+        collateral.safeTransferFrom(msg.sender, address(this), escrow);
+        escrowedPremium += escrow;
+
+        bidId = _bids.length;
+        _bids.push(
+            Bid({
+                buyer: msg.sender,
+                series: id,
+                size: size,
+                bidPerContract: bidPerContract,
+                escrowed: escrow,
+                cancelled: false
+            })
+        );
+        _seriesBids[id].push(bidId);
+
+        emit Bidded(bidId, id, msg.sender, size, bidPerContract);
+    }
+
+    /// @notice Withdraw a bid's unfilled remainder and reclaim its escrow.
+    function cancelBid(uint256 bidId) external nonReentrant returns (uint256 returned) {
+        if (bidId >= _bids.length) revert BidUnknown();
+        Bid storage b = _bids[bidId];
+        if (b.buyer != msg.sender) revert NotBidder();
+        if (b.cancelled || b.size == 0) revert BidClosed();
+
+        uint256 sizeReturned = b.size;
+        returned = b.escrowed;
+
+        b.size = 0;
+        b.escrowed = 0;
+        b.cancelled = true;
+
+        escrowedPremium -= returned;
+        collateral.safeTransfer(msg.sender, returned);
+
+        emit BidCancelled(bidId, sizeReturned, returned);
+    }
+
+    /// @notice Write `size` contracts against a resting bid and take its premium.
+    /// @param minPremium Slippage bound; the call reverts if the bid pays less.
+    function hitBid(uint256 bidId, uint256 size, uint256 minPremium)
+        external
+        nonReentrant
+        returns (uint256 received)
+    {
+        if (bidId >= _bids.length) revert BidUnknown();
+        if (size == 0) revert ZeroAmount();
+
+        Bid storage b = _bids[bidId];
+        if (b.cancelled || b.size == 0) revert BidClosed();
+        if (b.buyer == msg.sender) revert SelfHit();
+        if (size > b.size) revert InsufficientBidSize(size, b.size);
+
+        bytes32 id = b.series;
+        Series storage sr = _series[id];
+        if (sr.settled) revert AlreadySettled();
+        if (block.timestamp >= sr.expiry) revert SeriesExpired();
+
+        // Release exactly this fill's share of the escrow. The last fill takes
+        // the remainder, so rounding can never strand dust or over-draw.
+        uint256 released = size == b.size
+            ? b.escrowed
+            : F.fullMulDiv(b.escrowed, size, b.size);
+
+        // Split the released escrow back into premium and fee the same way it
+        // went in, so the writer is paid what the bid actually offered.
+        uint256 premium = F.fullMulDiv(released, 10_000, 10_000 + uint256(feeBps));
+        uint256 fee = released - premium;
+        if (premium < minPremium) revert PremiumBelowMin(premium, minPremium);
+
+        uint256 lock = F.fullMulDivUp(sr.lockPerContract, size, 1e18);
+        if (lock == 0) revert ZeroAmount();
+
+        b.size -= size;
+        b.escrowed -= released;
+        escrowedPremium -= released;
+
+        // Writer posts the worst case; the bidder's escrow becomes their premium.
+        collateral.safeTransferFrom(msg.sender, address(this), lock);
+        lockedCollateral += lock;
+
+        sr.lockedCollateral += lock;
+        sr.openInterest += size;
+        longOf[id][b.buyer] += size;
+        shortOf[id][msg.sender] += size;
+
+        accruedFees += fee;
+        received = premium;
+        collateral.safeTransfer(msg.sender, premium);
+
+        emit BidHit(bidId, id, msg.sender, size, premium, fee);
     }
 
     /* ------------------------------------ fill --------------------------------- */

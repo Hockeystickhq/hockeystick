@@ -109,7 +109,7 @@ liquidated.
 
 | Contract | Address |
 |---|---|
-| HockeystickBook | [`0xA756f9f9...94D2aAB`](https://explorer.testnet.chain.robinhood.com/address/0xA756f9f9CC82e23468B9b62867fEE922094D2aAB) |
+| HockeystickBook | [`0x51f25850...B867edA1`](https://explorer.testnet.chain.robinhood.com/address/0x51f25850b2d08D5074A3fD42089a30B3B867edA1) |
 
 Same four markets, same TestUSDC collateral. Full record in
 [`deploy/testnet-book.json`](deploy/testnet-book.json).
@@ -118,9 +118,36 @@ First live peer-to-peer trade: 2x 7-day $2,400 ETH puts written for $4,800 locke
 one filled at $60 premium — the writer received $60.00, the protocol kept $0.60 in
 fees, and neither pool nor treasury took a position.
 
-Writer flow: `writeAndOffer()` to post collateral and an ask, `cancelOffer()` to
-withdraw it. Buyer flow: `fill()`. After expiry: `settle()` once per series
-(permissionless), then `exercise()` for holders and `reclaim()` for writers.
+The book is two-sided. A writer rests an ask with `writeAndOffer()` and a buyer
+takes it with `fill()`; a buyer rests a bid with `placeBid()`, escrowing the
+premium, and any writer takes it with `hitBid()`. Both sides are collateralised
+before they rest, so nothing on the book can fail to pay. `cancelOffer()` and
+`cancelBid()` return what is unfilled.
+
+After expiry: `settle()` once per series (permissionless), then `exercise()` for
+holders and `reclaim()` for writers.
+
+Markets can be listed by anyone with `listMarketPermissionless()`. The contract
+checks that the feed prices today and carries a staleness bound, and refuses a
+duplicate oracle - but it cannot check that a feed is honest, so those markets
+carry `verified = false` and the client says so. A rigged market can only take
+from people who chose to trade it: every series is collateralised on its own, so
+nothing leaks to other markets or to the protocol.
+
+### Settlement keeper
+
+`settle()` is permissionless but needs the oracle round that straddles expiry,
+which is an off-chain search. `keeper/keeper.mjs` walks every known series, finds
+the boundary round, simulates, and settles. Without it nobody can exercise.
+
+```
+BOOK=0x… PRIVATE_KEY=0x… node keeper/keeper.mjs        # loop
+BOOK=0x… PRIVATE_KEY=0x… node keeper/keeper.mjs --once # single sweep
+```
+
+Verified end to end: a 90-second ETH put was bid, hit by a writer, expired, and
+settled by the keeper at $2,442 - the price at expiry, not the $2,200 pushed to
+the feed afterwards.
 
 ## Status
 

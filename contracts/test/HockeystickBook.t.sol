@@ -51,8 +51,8 @@ contract HockeystickBookTest is Test {
     function _assertSolvent() internal view {
         assertGe(
             usdc.balanceOf(address(book)),
-            book.lockedCollateral() + book.accruedFees(),
-            "INSOLVENT: balance < locked + fees"
+            book.lockedCollateral() + book.accruedFees() + book.escrowedPremium(),
+            "INSOLVENT: balance < locked + fees + escrow"
         );
     }
 
@@ -494,5 +494,197 @@ contract HockeystickBookTest is Test {
         HockeystickBook.Series memory s = book.series(_id(false));
         assertEq(s.lockedCollateral, 15_000 * USDC_ONE, "series holds the whole lock");
         _assertSolvent();
+    }
+
+    /* ---------------------------------- bids ---------------------------------- */
+
+    /// @dev Place a bid for `size` contracts at `px` per contract, as `buyer`.
+    function _bidPut(uint256 size, uint256 px) internal returns (uint256 bidId) {
+        vm.prank(buyer);
+        (bidId,) = book.placeBid(marketId, STRIKE, expiry, false, size, px);
+    }
+
+    function test_bidEscrowsPremiumAndFee() public {
+        uint256 before = usdc.balanceOf(buyer);
+        _bidPut(1e18, 50 * USDC_ONE);
+
+        // 50 premium + 1% fee escrowed up front, so the bid is real money.
+        assertEq(before - usdc.balanceOf(buyer), 50 * USDC_ONE + 5 * USDC_ONE / 10, "escrowed premium plus fee");
+        assertEq(book.escrowedPremium(), 50 * USDC_ONE + 5 * USDC_ONE / 10, "tracked separately from collateral");
+        assertEq(book.lockedCollateral(), 0, "a bid locks no collateral");
+        _assertSolvent();
+    }
+
+    function test_cancelBidReturnsEscrow() public {
+        uint256 before = usdc.balanceOf(buyer);
+        uint256 bidId = _bidPut(2e18, 50 * USDC_ONE);
+
+        vm.prank(buyer);
+        uint256 returned = book.cancelBid(bidId);
+
+        assertEq(usdc.balanceOf(buyer), before, "bidder made whole");
+        assertGt(returned, 0);
+        assertEq(book.escrowedPremium(), 0, "escrow released");
+    }
+
+    function test_onlyBidderCanCancelBid() public {
+        uint256 bidId = _bidPut(1e18, 50 * USDC_ONE);
+        vm.prank(writer);
+        vm.expectRevert(HockeystickBook.NotBidder.selector);
+        book.cancelBid(bidId);
+    }
+
+    function test_hitBidPaysWriterAndOpensBothSides() public {
+        uint256 bidId = _bidPut(1e18, 50 * USDC_ONE);
+        uint256 writerBefore = usdc.balanceOf(writer);
+
+        vm.prank(writer);
+        uint256 received = book.hitBid(bidId, 1e18, 0);
+
+        assertEq(received, 50 * USDC_ONE, "writer paid the bid, not the bid plus fee");
+        // Writer posted 3000 collateral and took 50 premium.
+        assertEq(writerBefore - usdc.balanceOf(writer), 3000 * USDC_ONE - 50 * USDC_ONE, "net of premium");
+        assertEq(book.accruedFees(), 5 * USDC_ONE / 10, "protocol kept the fee");
+        assertEq(book.escrowedPremium(), 0, "escrow fully consumed");
+
+        bytes32 id = _id(false);
+        assertEq(book.longOf(id, buyer), 1e18, "bidder is long");
+        assertEq(book.shortOf(id, writer), 1e18, "writer is short");
+        _assertSolvent();
+    }
+
+    function test_hitBidRespectsMinPremium() public {
+        uint256 bidId = _bidPut(1e18, 50 * USDC_ONE);
+        vm.prank(writer);
+        vm.expectRevert(
+            abi.encodeWithSelector(HockeystickBook.PremiumBelowMin.selector, 50 * USDC_ONE, 60 * USDC_ONE)
+        );
+        book.hitBid(bidId, 1e18, 60 * USDC_ONE);
+    }
+
+    function test_cannotHitOwnBid() public {
+        uint256 bidId = _bidPut(1e18, 50 * USDC_ONE);
+        vm.prank(buyer);
+        vm.expectRevert(HockeystickBook.SelfHit.selector);
+        book.hitBid(bidId, 1e18, 0);
+    }
+
+    function test_partialBidHitsConsumeEscrowExactly() public {
+        uint256 bidId = _bidPut(4e18, 50 * USDC_ONE);
+
+        vm.prank(writer);
+        book.hitBid(bidId, 1e18, 0);
+        vm.prank(other);
+        book.hitBid(bidId, 3e18, 0);
+
+        HockeystickBook.Bid memory b = book.bid(bidId);
+        assertEq(b.size, 0, "bid fully consumed");
+        assertEq(b.escrowed, 0, "no escrow stranded");
+        assertEq(book.escrowedPremium(), 0, "global escrow drained");
+
+        bytes32 id = _id(false);
+        assertEq(book.longOf(id, buyer), 4e18, "bidder long the whole size");
+        assertEq(book.shortOf(id, writer) + book.shortOf(id, other), 4e18, "writers split the short");
+        _assertSolvent();
+    }
+
+    function test_bidSettlesLikeAnyOtherPosition() public {
+        uint256 bidId = _bidPut(1e18, 50 * USDC_ONE);
+        vm.prank(writer);
+        book.hitBid(bidId, 1e18, 0);
+
+        bytes32 id = _id(false);
+        _settleAt(id, 2500e18); // 500 in the money
+
+        vm.prank(buyer);
+        uint256 payout = book.exercise(id);
+        vm.prank(writer);
+        uint256 returned = book.reclaim(id);
+
+        assertEq(payout, 500 * USDC_ONE, "holder paid intrinsic");
+        assertEq(returned, 2500 * USDC_ONE, "writer keeps the rest");
+        _assertSolvent();
+    }
+
+    function test_bestBidPicksHighestAndSkipsCancelled() public {
+        _bidPut(1e18, 40 * USDC_ONE);
+        uint256 high = _bidPut(1e18, 70 * USDC_ONE);
+
+        bytes32 id = _id(false);
+        (uint256 bidId, uint256 px) = book.bestBid(id);
+        assertEq(bidId, high, "highest wins");
+        assertEq(px, 70 * USDC_ONE);
+
+        vm.prank(buyer);
+        book.cancelBid(high);
+        (, px) = book.bestBid(id);
+        assertEq(px, 40 * USDC_ONE, "falls back to the next");
+    }
+
+    function testFuzz_bidEscrowFullyConsumedOrReturned(uint256 first) public {
+        uint256 size = 5e18;
+        first = bound(first, 1, size - 1);
+
+        uint256 bidId = _bidPut(size, 50 * USDC_ONE);
+        vm.prank(writer);
+        book.hitBid(bidId, first, 0);
+        vm.prank(other);
+        book.hitBid(bidId, size - first, 0);
+
+        assertEq(book.escrowedPremium(), 0, "no escrow left behind");
+        _assertSolvent();
+    }
+
+    /* --------------------------- permissionless listing ----------------------- */
+
+    function test_anyoneCanListAMarket() public {
+        MockOracle fresh = new MockOracle(100e18, "DOGE / USD");
+
+        vm.prank(other); // not the owner
+        uint32 id = book.listMarketPermissionless(address(fresh), 30_000);
+
+        HockeystickBook.Market memory m = book.market(id);
+        assertTrue(m.listed, "listed");
+        assertFalse(m.verified, "flagged as unverified");
+    }
+
+    function test_ownerListingIsMarkedVerified() public {
+        MockOracle fresh = new MockOracle(100e18, "LINK / USD");
+        vm.prank(owner);
+        uint32 id = book.listMarket(address(fresh), 30_000);
+        assertTrue(book.market(id).verified, "owner listings are vouched for");
+    }
+
+    function test_cannotListTheSameOracleTwice() public {
+        vm.prank(other);
+        vm.expectRevert(HockeystickBook.OracleAlreadyListed.selector);
+        book.listMarketPermissionless(address(oracle), 20_000);
+    }
+
+    function test_permissionlessMarketIsTradableEndToEnd() public {
+        MockOracle fresh = new MockOracle(100e18, "DOGE / USD");
+        vm.prank(other);
+        uint32 id = book.listMarketPermissionless(address(fresh), 30_000);
+
+        vm.prank(writer);
+        (uint256 offerId,) = book.writeAndOffer(id, 100e18, expiry, false, 1e18, 5 * USDC_ONE);
+        vm.prank(buyer);
+        book.fill(offerId, 1e18, type(uint256).max);
+
+        bytes32 sid = book.seriesId(id, 100e18, expiry, false);
+        assertEq(book.longOf(sid, buyer), 1e18, "trades like any other market");
+        _assertSolvent();
+    }
+
+    function test_cannotListAFeedThatCannotPrice() public {
+        MockOracle dead = new MockOracle(0, "DEAD / USD");
+        vm.expectRevert(HockeystickBook.BadParam.selector);
+        book.listMarketPermissionless(address(dead), 20_000);
+    }
+
+    function test_permissionlessCapIsBounded() public {
+        MockOracle fresh = new MockOracle(100e18, "WILD / USD");
+        vm.expectRevert(HockeystickBook.BadParam.selector);
+        book.listMarketPermissionless(address(fresh), 200_000);
     }
 }

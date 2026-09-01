@@ -1,0 +1,11 @@
+{
+  "name": "hockeystick-keeper",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Settles expired series so holders can exercise",
+  "main": "keeper.mjs",
+  "scripts": { "start": "node keeper.mjs", "once": "node keeper.mjs --once" },
+  "engines": { "node": ">=20" },
+  "dependencies": { "ethers": "^6.13.4" }
+}
