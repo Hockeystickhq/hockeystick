@@ -40,6 +40,7 @@ h1,h2,h3{font-family:"Bricolage Grotesque","Instrument Sans",sans-serif;font-wei
 button,input,select{font:inherit;color:inherit}
 
 #envbar{padding:.5rem 1rem;text-align:center;font-weight:600;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid var(--line);background:var(--volt);color:var(--on-volt)}
+#envbar.live{background:var(--down);color:#fff}
 #envbar.err{background:var(--down);color:#fff}
 
 header{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;padding:1rem 1.25rem;border-bottom:2px solid var(--line)}
@@ -110,7 +111,7 @@ td.empty{text-align:center;color:var(--dim)}
 </head>
 <body>
 
-<div id="envbar">Robinhood Chain testnet · test funds only, nothing here has value</div>
+<div id="envbar" class="live">Robinhood Chain mainnet · real funds · unaudited — trade only what you can lose</div>
 
 <header>
   <span class="brand">Hockeystick</span>
@@ -256,11 +257,10 @@ td.empty{text-align:center;color:var(--dim)}
     </section>
 
     <section class="panel">
-      <h2>Test funds</h2>
+      <h2>Collateral</h2>
       <div class="body">
-        <p class="hint" style="margin-bottom:.7rem">The faucet gives 100,000 tUSDC once a day. It is worthless test money.</p>
-        <button id="faucet" disabled>Claim 100,000 tUSDC</button>
-        <div id="faucetMsg"></div>
+        <p class="hint">Everything here settles in <strong>USDG</strong>, the Paxos Global Dollar, on Robinhood Chain. You need USDG to buy or write, and ETH for gas.</p>
+        <p class="hint" style="margin-top:.6rem"><a class="mono" id="usdgLink" href="#" target="_blank" rel="noopener"></a></p>
       </div>
     </section>
   </div>
@@ -273,14 +273,17 @@ td.empty{text-align:center;color:var(--dim)}
 
   /* ------------------------------ deployment ------------------------------ */
 
-  var CHAIN_ID = 46630;
-  var CHAIN_HEX = "0xb626";
-  var RPC = "https://rpc.testnet.chain.robinhood.com";
-  var EXPLORER = "https://explorer.testnet.chain.robinhood.com";
-  var BOOK = "0x71F46421AB4e15af12E63B23eB88c8d2f4e508df";
-  var USDC = "0x5f9ea3a11da65fbdf559c9f2218dd231d2a11358";
+  var CHAIN_ID = 4663;
+  var CHAIN_HEX = "0x1237";
+  var RPC = "https://rpc.mainnet.chain.robinhood.com";
+  var EXPLORER = "https://robinhoodchain.blockscout.com";
+  var BOOK = "0x5F9eA3a11dA65fbdf559C9f2218DD231d2a11358";
+  // Global Dollar (USDG), Paxos, 6 decimals. Real money.
+  var USDC = "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168";
+  var COLLATERAL_SYMBOL = "USDG";
 
   var BOOK_ABI = [
+    "function collateral() view returns (address)",
     "function marketCount() view returns (uint256)",
     "function market(uint32) view returns (tuple(address oracle,uint64 payoutCapBps,bool listed,bool verified))",
     "function listMarketPermissionless(address,uint64) returns (uint32)",
@@ -320,7 +323,6 @@ td.empty{text-align:center;color:var(--dim)}
     "function balanceOf(address) view returns (uint256)",
     "function allowance(address,address) view returns (uint256)",
     "function approve(address,uint256) returns (bool)",
-    "function claim()"
   ];
 
   var MAX_UINT = "0x" + "f".repeat(64);
@@ -381,7 +383,6 @@ td.empty{text-align:center;color:var(--dim)}
       state.book = new ethers.Contract(BOOK, BOOK_ABI, state.signer);
       state.usdc = new ethers.Contract(USDC, ERC20_ABI, state.signer);
 
-      $("faucet").disabled = false;
       $("writeBtn").disabled = false;
       $("writeBtn").textContent = "Write and post offer";
       $("bidBtn").disabled = false;
@@ -403,7 +404,7 @@ td.empty{text-align:center;color:var(--dim)}
           method: "wallet_addEthereumChain",
           params: [{
             chainId: CHAIN_HEX,
-            chainName: "Robinhood Chain testnet",
+            chainName: "Robinhood Chain",
             nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
             rpcUrls: [RPC],
             blockExplorerUrls: [EXPLORER]
@@ -419,7 +420,7 @@ td.empty{text-align:center;color:var(--dim)}
     $("acct").innerHTML =
       '<div><span>Wallet</span><a class="mono" href="' + EXPLORER + "/address/" + state.address +
         '" target="_blank" rel="noopener">' + short(state.address) + "</a></div>" +
-      '<div><span>tUSDC</span><b class="mono">' + fromUsdc(bal).toLocaleString() + "</b></div>" +
+      '<div><span>USDG</span><b class="mono">' + fromUsdc(bal).toLocaleString() + "</b></div>" +
       '<div><span>Gas</span><b class="mono">' + Number(ethers.formatEther(gas)).toFixed(4) + "</b></div>";
   }
 
@@ -430,6 +431,14 @@ td.empty{text-align:center;color:var(--dim)}
   // RPC is not hit with 200 at once.
   async function loadMarkets() {
     try {
+      var onChain = await bookRead.collateral();
+      if (onChain.toLowerCase() !== USDC.toLowerCase()) {
+        $("envbar").className = "err";
+        $("envbar").textContent =
+          "Configuration mismatch — this book settles in " + onChain + ", not the token this page would approve. Do not trade.";
+        return;
+      }
+
       var n = Number(await bookRead.marketCount());
       $("marketCount").textContent = n + " markets";
 
@@ -713,7 +722,7 @@ td.empty{text-align:center;color:var(--dim)}
       if (!state.strike || !state.expiry) { $("wLock").textContent = "—"; return; }
       var size = toWad($("wSize").value || "1");
       var lock = await bookRead.lockRequired(state.marketId, toWad(state.strike), state.expiry, state.isCall, size);
-      $("wLock").textContent = usd(fromUsdc(lock)) + " tUSDC";
+      $("wLock").textContent = usd(fromUsdc(lock)) + " USDG";
     } catch (e) {
       $("wLock").textContent = "—";
     }
@@ -759,7 +768,7 @@ td.empty{text-align:center;color:var(--dim)}
     var size = Number($("bSize").value) || 0;
     var px = Number($("bPx").value) || 0;
     var esc = size * px * (1 + 100 / 10000); // premium plus the 100bps fee
-    $("bEscrow").textContent = esc > 0 ? usd(esc) + " tUSDC" : "—";
+    $("bEscrow").textContent = esc > 0 ? usd(esc) + " USDG" : "—";
   }
 
   async function placeBid() {
@@ -981,10 +990,6 @@ td.empty{text-align:center;color:var(--dim)}
     $(id).addEventListener("input", updateWriteLock);
   });
 
-  $("faucet").addEventListener("click", function () {
-    runTx(function () { return state.usdc.claim(); }, "faucetMsg", "Claimed 100,000 tUSDC.");
-  });
-
   function setType(isCall) {
     state.isCall = isCall;
     $("tCall").setAttribute("aria-pressed", String(isCall));
@@ -1037,6 +1042,10 @@ td.empty{text-align:center;color:var(--dim)}
   // Default the expiry field to a week out, the most common tenor.
   var d = new Date(Date.now() + 7 * 864e5);
   $("expiry").value = d.toISOString().slice(0, 10);
+
+  var ul = $("usdgLink");
+  ul.href = EXPLORER + "/address/" + USDC;
+  ul.textContent = USDC + " \u2197";
 
   updateBidEscrow();
   loadMarkets();

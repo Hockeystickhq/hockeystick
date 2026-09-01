@@ -1,6 +1,7 @@
 {
   "chainId": 4663,
   "network": "robinhood-mainnet",
+  "count": 12,
   "feeds": [
     {
       "name": "BTC / USD",

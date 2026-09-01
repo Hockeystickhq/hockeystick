@@ -83,6 +83,22 @@ Call `claim()` on TestUSDC for 100,000 tUSDC a day, then `buy()` on the vault.
 First live trade: 5x 7-day $2,442 ETH puts for $505.84 premium, against $12,210
 locked — exactly five contracts times the strike.
 
+## Deployed — Robinhood Chain mainnet (4663)
+
+| Contract | Address |
+|---|---|
+| HockeystickBook | [`0x5F9eA3a1...d2a11358`](https://robinhoodchain.blockscout.com/address/0x5F9eA3a11dA65fbdf559C9f2218DD231d2a11358) |
+| USDG (collateral) | [`0x5fc5360D...16F1d168`](https://robinhoodchain.blockscout.com/address/0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168) |
+
+Settles in USDG, the Paxos Global Dollar, 6 decimals. Four markets live: BTC,
+ETH, LINK and tokenized AAPL, each against its own real Chainlink feed. Eight
+more feeds are mapped in `deploy/feeds.mainnet.json` and can be listed at any
+time with `script/ListMarketsMainnet.s.sol`.
+
+**This is real money and the contracts have not been audited.** The dispute
+window is one hour, as it should be when payouts are real. Full record in
+[`deploy/mainnet.json`](deploy/mainnet.json).
+
 ## Two models, one settlement layer
 
 `HockeystickVault` and `HockeystickBook` write the same options against the same

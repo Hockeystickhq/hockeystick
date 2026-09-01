@@ -43,7 +43,7 @@ contract ListMarketsMainnet is Script {
 
         require(vm.parseJsonUint(json, ".chainId") == block.chainid, "feed file is for another chain");
 
-        uint256 total = vm.parseJsonStringArray(json, ".feeds[*].name").length;
+        uint256 total = vm.parseJsonUint(json, ".count");
         uint256 from = vm.envOr("FROM", uint256(0));
         uint256 to = vm.envOr("TO", total);
         if (to > total) to = total;

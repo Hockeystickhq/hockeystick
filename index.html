@@ -970,9 +970,9 @@ details p{padding:0 0 1.35rem;color:var(--ink-2);max-width:66ch;font-size:.95rem
         <a class="btn" href="#pricer">Price a contract &rarr;</a>
       </div>
       <div class="hero-facts">
-        <div><b id="f1">184</b><span class="eyebrow">ms median fill</span></div>
-        <div><b>$0.004</b><span class="eyebrow">per contract</span></div>
-        <div><b id="f3">214</b><span class="eyebrow">live markets</span></div>
+        <div><b id="f1">4</b><span class="eyebrow">live markets</span></div>
+        <div><b>100%</b><span class="eyebrow">collateralised at write</span></div>
+        <div><b id="f3">0</b><span class="eyebrow">liquidations possible</span></div>
       </div>
     </div>
 
@@ -1184,10 +1184,10 @@ details p{padding:0 0 1.35rem;color:var(--ink-2);max-width:66ch;font-size:.95rem
 <!-- ============ STATS ============ -->
 <section class="band">
   <div class="wrap stats">
-    <div class="stat rv"><b>$3.84B</b><span>Notional traded since launch</span></div>
-    <div class="stat rv"><b>99.97%</b><span>Fill rate, trailing 90 days</span></div>
+    <div class="stat rv"><b>100%</b><span>Of max payout locked before an option rests</span></div>
     <div class="stat rv"><b>0</b><span>Liquidations, by design</span></div>
-    <div class="stat rv"><b>214</b><span>Markets live right now</span></div>
+    <div class="stat rv"><b>4</b><span>Markets live on mainnet</span></div>
+    <div class="stat rv"><b>1%</b><span>Protocol fee on premium</span></div>
   </div>
 </section>
 
@@ -1227,8 +1227,8 @@ details p{padding:0 0 1.35rem;color:var(--ink-2);max-width:66ch;font-size:.95rem
 <section class="band band-pad" id="contracts">
   <div class="wrap">
     <div class="sec-head rv">
-      <h2>The token and the code</h2>
-      <p>$HS is live on Robinhood Chain mainnet. The protocol contracts are on the testnet while they are finished. Every address here is verifiable on the explorer right now.</p>
+      <h2>Live on mainnet</h2>
+      <p>The exchange and the token are both on Robinhood Chain. Options settle in USDG, the Paxos Global Dollar. Every address here is verifiable on the explorer right now.</p>
     </div>
 
     <div class="ca-card rv">
@@ -1252,9 +1252,9 @@ details p{padding:0 0 1.35rem;color:var(--ink-2);max-width:66ch;font-size:.95rem
       </div>
     </div>
 
-    <p class="addr-note rv" style="margin-top:2.5rem">Protocol contracts — testnet</p>
+    <p class="addr-note rv" style="margin-top:2.5rem">Exchange contracts — Robinhood Chain mainnet</p>
     <div class="rv">
-      <p class="addr-note">robinhood-testnet · chain id 46630</p>
+      <p class="addr-note">robinhood-mainnet &middot; chain id 4663</p>
       <div class="addr-table">
         <table>
           <thead>
@@ -1263,43 +1263,18 @@ details p{padding:0 0 1.35rem;color:var(--ink-2);max-width:66ch;font-size:.95rem
           <tbody>
           <tr>
             <td class="name">HockeystickBook</td>
-            <td class="addr"><a class="mono" href="https://explorer.testnet.chain.robinhood.com/address/0x71F46421AB4e15af12E63B23eB88c8d2f4e508df" target="_blank" rel="noopener" title="0x71F46421AB4e15af12E63B23eB88c8d2f4e508df">0x71F46421AB4e15af12E63B23eB88c8d2f4e508df</a></td>
-            <td class="name">live &middot; no house</td>
+            <td class="addr"><a class="mono" href="https://robinhoodchain.blockscout.com/address/0x5F9eA3a11dA65fbdf559C9f2218DD231d2a11358" target="_blank" rel="noopener" title="0x5F9eA3a11dA65fbdf559C9f2218DD231d2a11358">0x5F9eA3a11dA65fbdf559C9f2218DD231d2a11358</a></td>
+            <td class="name">the exchange</td>
           </tr>
           <tr>
-            <td class="name">HockeystickVault</td>
-            <td class="addr"><a class="mono" href="https://explorer.testnet.chain.robinhood.com/address/0x2a4d14f5f7ad1cde33d9687caf732087bb2df79e" target="_blank" rel="noopener" title="0x2a4d14f5f7ad1cde33d9687caf732087bb2df79e">0x2a4d14f5f7ad1cde33d9687caf732087bb2df79e</a></td>
-            <td class="name">not in use</td>
-          </tr>
-          <tr>
-            <td class="name">TestUSDC</td>
-            <td class="addr"><a class="mono" href="https://explorer.testnet.chain.robinhood.com/address/0x5f9ea3a11da65fbdf559c9f2218dd231d2a11358" target="_blank" rel="noopener" title="0x5f9ea3a11da65fbdf559c9f2218dd231d2a11358">0x5f9ea3a11da65fbdf559c9f2218dd231d2a11358</a></td>
-            <td class="name">faucet</td>
-          </tr>
-          <tr>
-            <td class="name">ETH / USD oracle</td>
-            <td class="addr"><a class="mono" href="https://explorer.testnet.chain.robinhood.com/address/0xad2eeffe19ae2df7f41981b168939657ecebe2ce" target="_blank" rel="noopener" title="0xad2eeffe19ae2df7f41981b168939657ecebe2ce">0xad2eeffe19ae2df7f41981b168939657ecebe2ce</a></td>
-            <td class="name">market 0</td>
-          </tr>
-          <tr>
-            <td class="name">BTC / USD oracle</td>
-            <td class="addr"><a class="mono" href="https://explorer.testnet.chain.robinhood.com/address/0x8c6ca38e8101ce0133bf9ba0dbc4441a72fc5697" target="_blank" rel="noopener" title="0x8c6ca38e8101ce0133bf9ba0dbc4441a72fc5697">0x8c6ca38e8101ce0133bf9ba0dbc4441a72fc5697</a></td>
-            <td class="name">market 1</td>
-          </tr>
-          <tr>
-            <td class="name">NVDA / USD oracle</td>
-            <td class="addr"><a class="mono" href="https://explorer.testnet.chain.robinhood.com/address/0x624e9d8bbc7f5e51bf85f2092dc508bb3bcb8dc0" target="_blank" rel="noopener" title="0x624e9d8bbc7f5e51bf85f2092dc508bb3bcb8dc0">0x624e9d8bbc7f5e51bf85f2092dc508bb3bcb8dc0</a></td>
-            <td class="name">market 2</td>
-          </tr>
-          <tr>
-            <td class="name">SLV / USD oracle</td>
-            <td class="addr"><a class="mono" href="https://explorer.testnet.chain.robinhood.com/address/0x3ce68452f4859e2e35fcc46be52364766493c2ec" target="_blank" rel="noopener" title="0x3ce68452f4859e2e35fcc46be52364766493c2ec">0x3ce68452f4859e2e35fcc46be52364766493c2ec</a></td>
-            <td class="name">market 3</td>
+            <td class="name">USDG</td>
+            <td class="addr"><a class="mono" href="https://robinhoodchain.blockscout.com/address/0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168" target="_blank" rel="noopener" title="0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168">0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168</a></td>
+            <td class="name">collateral</td>
           </tr>
           </tbody>
         </table>
       </div>
-      <p class="addr-foot"><strong>The book is the exchange.</strong> A writer posts collateral and an ask, a buyer fills it, and the protocol never takes the other side — it holds no position and cannot lose on a trade. <em>HockeystickVault</em> is an earlier pooled design in which a shared pot underwrites every trade; it is kept in the repository for reference and is <strong>not part of the exchange</strong>. Do not deposit into it. <strong>Testnet only, and not audited.</strong> Balances here carry no value: claim tUSDC from the faucet to try it. Testnet aggregators are writable stand-ins; Chainlink has not deployed feeds to this network. The production ChainlinkOracle adapter runs unchanged in front of them. Full deployment record, including aggregators and volatility parameters, is in <a href="https://github.com/Hockeystickhq/hockeystick/blob/main/contracts/deploy/testnet.json" target="_blank" rel="noopener">contracts/deploy/testnet.json</a>.</p>
+      <p class="addr-foot"><strong>The book is the exchange.</strong> A writer posts collateral and an ask, a buyer fills it, and the protocol never takes the other side &mdash; it holds no position and cannot lose on a trade. Four markets are live at launch: BTC, ETH, LINK and tokenized AAPL, each settled by its own Chainlink feed. <strong>This is real money and the contracts are not audited.</strong> Options can expire worthless: a buyer can lose the entire premium, and a writer&rsquo;s collateral is locked until expiry. Trade only what you can afford to lose. The full source and deployment record are on <a href="https://github.com/Hockeystickhq/hockeystick" target="_blank" rel="noopener">GitHub</a>.</p>
     </div>
   </div>
 </section>
@@ -1373,7 +1348,7 @@ details p{padding:0 0 1.35rem;color:var(--ink-2);max-width:66ch;font-size:.95rem
         </ul>
       </div>
     </div>
-    <p class="disclaim"><strong>Hockeystick is a concept design.</strong> Nothing here is a live product, an offer, or financial advice. All market data, volumes, yields and statistics shown are illustrative sample values created for this layout. Options carry substantial risk: buyers can lose the entire premium paid, and sellers can lose considerably more than they receive. Derivatives trading is restricted or prohibited in many jurisdictions.</p>
+    <p class="disclaim"><strong>Hockeystick is live on Robinhood Chain mainnet and has not been audited.</strong> Nothing here is financial advice or an offer. Trading options risks real money: a buyer can lose the entire premium paid, and a writer&rsquo;s collateral is locked until expiry and paid out to the holder if the option finishes in the money. Because every option is collateralised in full when it is written, no position can be liquidated &mdash; but unaudited smart contracts can contain defects that cost you everything in them, and settlement depends on Chainlink price feeds continuing to publish. Payouts on calls are capped at a per-market multiple of the strike, so a call is economically a call spread rather than uncapped upside. Derivatives trading is restricted or prohibited in many jurisdictions; it is your responsibility to know whether you may use this.</p>
   </div>
 </footer>
 
