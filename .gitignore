@@ -7,3 +7,7 @@ node_modules
 contracts/out
 contracts/cache
 contracts/broadcast
+
+# keeper runtime
+contracts/keeper/keeper.log
+contracts/keeper/node_modules
