@@ -162,9 +162,17 @@ BOOK=0x… PRIVATE_KEY=0x… node keeper/keeper.mjs        # loop
 BOOK=0x… PRIVATE_KEY=0x… node keeper/keeper.mjs --once # single sweep
 ```
 
-Verified end to end: a 90-second ETH put was bid, hit by a writer, expired, and
-settled by the keeper at $2,442 - the price at expiry, not the $2,200 pushed to
-the feed afterwards.
+Verified end to end twice. A 90-second ETH put was bid, hit by a writer, expired,
+and settled by the keeper at $2,442 - the price at expiry, not the $2,200 pushed
+to the feed afterwards. On the 100-market book, an AAPL $320 put was written and
+offered, one contract filled from the ask and one written into a bid, the
+unfilled leg cancelled and refunded, then settled by the keeper at $316.46: the
+holder took $7.08, the writer reclaimed $632.92, and the $640 lock was
+distributed to the cent with the contract left exactly solvent.
+
+The testnet dispute window is 60 seconds rather than an hour, so a tester is not
+left waiting to see a payout. On mainnet it should stay at an hour - it exists so
+a bad oracle print can be challenged before it is paid out.
 
 ## Status
 

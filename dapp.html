@@ -287,6 +287,7 @@ td.empty{text-align:center;color:var(--dim)}
     "function bidCount() view returns (uint256)",
     "function bid(uint256) view returns (tuple(address buyer,bytes32 series,uint256 size,uint256 bidPerContract,uint256 escrowed,bool cancelled))",
     "function seriesBids(bytes32) view returns (uint256[])",
+    "function bestAsk(bytes32) view returns (uint256,uint256)",
     "function bestBid(bytes32) view returns (uint256,uint256)",
     "function hitProceeds(uint256,uint256) view returns (uint256,uint256)",
     "function placeBid(uint32,uint256,uint40,bool,uint256,uint256) returns (uint256,bytes32)",

@@ -18,5 +18,7 @@
     "oracle-boundary settlement",
     "100 markets"
   ],
-  "marketCount": 100
+  "marketCount": 100,
+  "disputeWindowSeconds": 60,
+  "verifiedOnChain": "Full lifecycle exercised on the deployed contract: AAPL $320 put, 2 written and filled across an ask and a bid, cancel refunded the unfilled leg, keeper settled at $316.46, holder took $7.08 and the writer reclaimed $632.92 - the $640 lock distributed exactly, contract left solvent to the cent."
 }
