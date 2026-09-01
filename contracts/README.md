@@ -83,9 +83,50 @@ Call `claim()` on TestUSDC for 100,000 tUSDC a day, then `buy()` on the vault.
 First live trade: 5x 7-day $2,442 ETH puts for $505.84 premium, against $12,210
 locked — exactly five contracts times the strike.
 
+## Two models, one settlement layer
+
+`HockeystickVault` and `HockeystickBook` write the same options against the same
+oracles and settle them identically. They differ only in who takes the other side.
+
+| | `HockeystickVault` | `HockeystickBook` |
+|---|---|---|
+| Counterparty | the pool, funded by LPs | another user |
+| Who posts collateral | the pool, on every sale | the writer, per contract |
+| Who sets the price | on-chain Black-Scholes | the writer's ask |
+| Liquidity | always quotes, every strike | only where someone has written |
+| Protocol risk | LPs carry the book | none — the protocol never takes a side |
+
+The book exists because the vault's LPs carry unhedged short-option risk. In the
+book that risk belongs to whoever chose to write the option, and the protocol
+holds nothing but the fee. The cost is a cold start: a strike nobody has written
+has no offers, where the vault would have quoted it.
+
+Both keep the invariant that matters — every option is backed at the moment it is
+written by collateral equal to its maximum possible payout, so nothing can be
+liquidated.
+
+### Deployed — order book, Robinhood Chain testnet (46630)
+
+| Contract | Address |
+|---|---|
+| HockeystickBook | [`0xA756f9f9...94D2aAB`](https://explorer.testnet.chain.robinhood.com/address/0xA756f9f9CC82e23468B9b62867fEE922094D2aAB) |
+
+Same four markets, same TestUSDC collateral. Full record in
+[`deploy/testnet-book.json`](deploy/testnet-book.json).
+
+First live peer-to-peer trade: 2x 7-day $2,400 ETH puts written for $4,800 locked,
+one filled at $60 premium — the writer received $60.00, the protocol kept $0.60 in
+fees, and neither pool nor treasury took a position.
+
+Writer flow: `writeAndOffer()` to post collateral and an ask, `cancelOffer()` to
+withdraw it. Buyer flow: `fill()`. After expiry: `settle()` once per series
+(permissionless), then `exercise()` for holders and `reclaim()` for writers.
+
 ## Status
 
 Not audited. Testnet only until it is. The solvency invariant is fuzz-tested,
-not formally proven, and LPs currently carry unhedged short-option risk: there
-is no delta hedging, so a large directional move against the book is a real
-loss for the pool.
+not formally proven. In `HockeystickVault`, LPs carry unhedged short-option
+risk: there is no delta hedging, so a large directional move against the book is
+a real loss for the pool. `HockeystickBook` moves that risk onto individual
+writers, who choose their own strikes and prices, but a writer is equally
+unhedged — the maximum loss is the collateral they posted.

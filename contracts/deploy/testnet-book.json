@@ -1,0 +1,39 @@
+{
+  "network": "robinhood-testnet",
+  "chainId": 46630,
+  "rpc": "https://rpc.testnet.chain.robinhood.com",
+  "explorer": "https://explorer.testnet.chain.robinhood.com",
+  "deployedAt": "2026-08-31",
+  "model": "peer-to-peer offer book",
+  "contracts": {
+    "HockeystickBook": "0xA756f9f9CC82e23468B9b62867fEE922094D2aAB",
+    "TestUSDC": "0x5f9ea3a11da65fbdf559c9f2218dd231d2a11358"
+  },
+  "markets": [
+    {
+      "id": 0,
+      "name": "ETH / USD",
+      "oracle": "0xad2eeffe19ae2df7f41981b168939657ecebe2ce",
+      "payoutCapBps": 30000
+    },
+    {
+      "id": 1,
+      "name": "BTC / USD",
+      "oracle": "0x8c6ca38e8101ce0133bf9ba0dbc4441a72fc5697",
+      "payoutCapBps": 25000
+    },
+    {
+      "id": 2,
+      "name": "NVDA / USD",
+      "oracle": "0x624e9d8bbc7f5e51bf85f2092dc508bb3bcb8dc0",
+      "payoutCapBps": 20000
+    },
+    {
+      "id": 3,
+      "name": "SLV / USD",
+      "oracle": "0x3ce68452f4859e2e35fcc46be52364766493c2ec",
+      "payoutCapBps": 15000
+    }
+  ],
+  "note": "Shares the vault's collateral and oracles. The book takes no protocol-side risk: writers post the full maximum payout and keep the premium, so every option is collateralised by the user who wrote it rather than by a pool."
+}
